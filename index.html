@@ -1,1 +1,1312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BusReview</title>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: white;
+}
+
+#map {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* LOGO */
+
+.logo {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    z-index: 1000;
+
+    background: #080808;
+    color: #5271ff;
+
+    padding: 12px 22px;
+    border-radius: 15px;
+
+    font-size: 21px;
+    font-weight: bold;
+}
+
+/* GPS */
+
+.localizar {
+    position: absolute;
+
+    right: 20px;
+    bottom: 350px;
+
+    z-index: 1000;
+
+    width: 52px;
+    height: 52px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #5271ff;
+    color: white;
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+/* PAINEL */
+
+.painel {
+
+    position: absolute;
+
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+
+    z-index: 2000;
+
+    background: #0b0b0b;
+
+    border-radius: 25px 25px 0 0;
+
+    padding: 20px;
+
+    max-height: 48vh;
+
+    overflow-y: auto;
+
+    box-shadow:
+    0 -5px 25px rgba(0,0,0,.7);
+}
+
+.titulo {
+    font-size: 19px;
+    font-weight: bold;
+
+    margin-bottom: 15px;
+}
+
+.destinos {
+    display: flex;
+    gap: 10px;
+
+    overflow-x: auto;
+
+    margin-bottom: 20px;
+}
+
+.destino {
+
+    min-width: 100px;
+
+    padding: 12px;
+
+    background: #171717;
+
+    color: white;
+
+    border: 1px solid #292929;
+
+    border-radius: 13px;
+
+    cursor: pointer;
+}
+
+.destino:hover {
+    background: #5271ff;
+}
+
+.subtitulo {
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+/* LINHAS */
+
+.linha {
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 14px;
+
+    margin-bottom: 9px;
+
+    background: #151515;
+
+    border: 1px solid #292929;
+
+    border-radius: 13px;
+
+    cursor: pointer;
+}
+
+.linha:hover {
+    background: #222;
+}
+
+.linha-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status {
+
+    width: 11px;
+    height: 11px;
+
+    border-radius: 50%;
+}
+
+.verde {
+    background: #35d05b;
+}
+
+.amarelo {
+    background: #f4c542;
+}
+
+.vermelho {
+    background: #e84b4b;
+}
+
+.codigo {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.destino-linha {
+    color: #999;
+    font-size: 13px;
+}
+
+.tempo {
+    color: #55d66b;
+    font-weight: bold;
+}
+
+/* DETALHES */
+
+.detalhes {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    background: #090909;
+
+    padding: 25px;
+
+    display: none;
+
+    overflow-y: auto;
+}
+
+.voltar {
+
+    background: #181818;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 15px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    margin-bottom: 25px;
+}
+
+.titulo-linha {
+
+    color: #5271ff;
+
+    font-size: 30px;
+
+    margin-bottom: 10px;
+}
+
+.info {
+
+    background: #151515;
+
+    border: 1px solid #292929;
+
+    border-radius: 15px;
+
+    padding: 18px;
+
+    margin-bottom: 12px;
+}
+
+.info-label {
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.info-value {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.botao {
+
+    width: 100%;
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    background: #5271ff;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div id="map"></div>
+
+
+<div class="logo">
+🚌 BusReview
+</div>
+
+
+<button
+class="localizar"
+onclick="localizarUsuario()">
+
+📍
+
+</button>
+
+
+<div class="painel">
+
+<div class="titulo">
+
+Para onde você quer ir?
+
+</div>
+
+
+<div class="destinos">
+
+<button
+class="destino"
+onclick="selecionarDestino('CEAP')">
+
+🏫
+<br>
+CEAP
+
+</button>
+
+
+<button
+class="destino"
+onclick="selecionarDestino('Interlagos')">
+
+📍
+<br>
+Interlagos
+
+</button>
+
+
+<button
+class="destino"
+onclick="selecionarDestino('Santo Amaro')">
+
+🏙️
+<br>
+Santo Amaro
+
+</button>
+
+
+<button
+class="destino"
+onclick="selecionarDestino('Outro')">
+
+➕
+<br>
+Outro
+
+</button>
+
+</div>
+
+
+<div class="subtitulo">
+
+Linhas que podem te levar
+
+</div>
+
+
+<div id="listaLinhas">
+
+<p style="color:#888">
+
+Escolha um destino.
+
+</p>
+
+</div>
+
+</div>
+
+
+<div
+id="detalhes"
+class="detalhes">
+
+<button
+class="voltar"
+onclick="fecharDetalhes()">
+
+← Voltar
+
+</button>
+
+
+<h1
+id="tituloLinha"
+class="titulo-linha">
+
+675A
+
+</h1>
+
+
+<div class="info">
+
+<div class="info-label">
+Destino
+</div>
+
+<div
+id="destinoSelecionado"
+class="info-value">
+
+CEAP
+
+</div>
+
+</div>
+
+
+<div class="info">
+
+<div class="info-label">
+Próximo ônibus
+</div>
+
+<div
+id="tempoLinha"
+class="info-value">
+
+6 min
+
+</div>
+
+</div>
+
+
+<div class="info">
+
+<div class="info-label">
+Ponto mais próximo
+</div>
+
+<div
+id="pontoLinha"
+class="info-value">
+
+A 350 metros
+
+</div>
+
+</div>
+
+
+<button
+class="botao"
+onclick="acompanharRota()">
+
+📍 Mostrar ônibus no mapa
+
+</button>
+
+</div>
+
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script>
+
+/* ======================================
+   MAPA
+====================================== */
+
+const map = L.map("map");
+
+
+L.tileLayer(
+
+"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+
+{
+    attribution:
+    "&copy; OpenStreetMap &copy; CARTO",
+
+    subdomains: "abcd",
+
+    maxZoom: 20
+}
+
+).addTo(map);
+
+
+map.setView(
+[-23.7000, -46.7000],
+13
+);
+
+
+/* ======================================
+   VARIÁVEIS
+====================================== */
+
+let usuario = null;
+
+let circulo700 = null;
+
+let marcadorUsuario = null;
+
+let marcadoresPontos = [];
+
+let destinoAtual = null;
+
+
+/* ======================================
+   PONTOS DE EXEMPLO
+   posteriormente SPTRANS
+====================================== */
+
+const pontos = [
+
+{
+    nome: "Ponto Interlagos",
+    lat: -23.7005,
+    lon: -46.7005,
+
+    linhas: [
+        "675A",
+        "6021"
+    ]
+},
+
+{
+    nome: "Ponto Avenida Interlagos",
+    lat: -23.7020,
+    lon: -46.6990,
+
+    linhas: [
+        "675A",
+        "637V"
+    ]
+},
+
+{
+    nome: "Ponto CEAP",
+    lat: -23.6980,
+    lon: -46.7020,
+
+    linhas: [
+        "6021",
+        "637V"
+    ]
+},
+
+{
+    nome: "Ponto Terminal",
+    lat: -23.7050,
+    lon: -46.6960,
+
+    linhas: [
+        "675A",
+        "637V"
+    ]
+}
+
+];
+
+
+/* ======================================
+   LINHAS
+====================================== */
+
+const linhas = {
+
+"675A": {
+
+    destinos: [
+        "CEAP",
+        "Interlagos"
+    ],
+
+    tempo: 6,
+
+    confiabilidade: "96%"
+
+},
+
+"6021": {
+
+    destinos: [
+        "CEAP",
+        "Santo Amaro"
+    ],
+
+    tempo: 9,
+
+    confiabilidade: "91%"
+
+},
+
+"637V": {
+
+    destinos: [
+        "CEAP",
+        "Santo Amaro",
+        "Interlagos"
+    ],
+
+    tempo: 14,
+
+    confiabilidade: "84%"
+
+}
+
+};
+
+
+/* ======================================
+   GPS
+====================================== */
+
+function localizarUsuario() {
+
+if (!navigator.geolocation) {
+
+alert(
+"Seu navegador não suporta localização."
+);
+
+return;
+
+}
+
+
+navigator.geolocation.watchPosition(
+
+function(position) {
+
+const lat =
+position.coords.latitude;
+
+const lon =
+position.coords.longitude;
+
+
+usuario = {
+
+lat: lat,
+lon: lon
+
+};
+
+
+mostrarUsuario();
+
+mostrarPontosProximos();
+
+},
+
+function(error) {
+
+console.log(error);
+
+alert(
+"Permita o acesso à localização."
+);
+
+},
+
+{
+
+enableHighAccuracy: true,
+
+maximumAge: 5000,
+
+timeout: 15000
+
+}
+
+);
+
+}
+
+
+/* ======================================
+   MOSTRAR USUÁRIO
+====================================== */
+
+function mostrarUsuario() {
+
+if (marcadorUsuario) {
+
+map.removeLayer(
+marcadorUsuario
+);
+
+}
+
+
+if (circulo700) {
+
+map.removeLayer(
+circulo700
+);
+
+}
+
+
+marcadorUsuario =
+
+L.circleMarker(
+
+[
+usuario.lat,
+usuario.lon
+],
+
+{
+
+radius: 9,
+
+color: "white",
+
+weight: 3,
+
+fillColor: "#5271ff",
+
+fillOpacity: 1
+
+}
+
+).addTo(map);
+
+
+marcadorUsuario.bindPopup(
+"📍 Você está aqui"
+);
+
+
+circulo700 =
+
+L.circle(
+
+[
+usuario.lat,
+usuario.lon
+],
+
+{
+
+radius: 700,
+
+color: "#5271ff",
+
+weight: 2,
+
+fillColor: "#5271ff",
+
+fillOpacity: .08
+
+}
+
+).addTo(map);
+
+
+map.setView(
+
+[
+usuario.lat,
+usuario.lon
+],
+
+15
+
+);
+
+}
+
+
+/* ======================================
+   DISTÂNCIA
+====================================== */
+
+function distancia(
+
+lat1,
+lon1,
+lat2,
+lon2
+
+) {
+
+const R = 6371000;
+
+
+const dLat =
+(lat2-lat1) *
+Math.PI / 180;
+
+
+const dLon =
+(lon2-lon1) *
+Math.PI / 180;
+
+
+const a =
+
+Math.sin(dLat/2) *
+Math.sin(dLat/2)
+
++
+
+Math.cos(
+lat1*Math.PI/180
+) *
+
+Math.cos(
+lat2*Math.PI/180
+) *
+
+Math.sin(dLon/2) *
+Math.sin(dLon/2);
+
+
+const c =
+2 * Math.atan2(
+Math.sqrt(a),
+Math.sqrt(1-a)
+);
+
+
+return R*c;
+
+}
+
+
+/* ======================================
+   MOSTRAR PONTOS DENTRO DE 700M
+====================================== */
+
+function mostrarPontosProximos() {
+
+
+marcadoresPontos.forEach(
+
+marker =>
+map.removeLayer(marker)
+
+);
+
+
+marcadoresPontos = [];
+
+
+if (!usuario) return;
+
+
+pontos.forEach(
+
+ponto => {
+
+
+const distanciaPonto =
+
+distancia(
+
+usuario.lat,
+usuario.lon,
+
+ponto.lat,
+ponto.lon
+
+);
+
+
+if (distanciaPonto <= 700) {
+
+
+const marker =
+
+L.circleMarker(
+
+[
+ponto.lat,
+ponto.lon
+],
+
+{
+
+radius: 8,
+
+color: "white",
+
+weight: 2,
+
+fillColor: "#5271ff",
+
+fillOpacity: 1
+
+}
+
+).addTo(map);
+
+
+marker.bindPopup(
+
+`
+<b>🚏 ${ponto.nome}</b>
+<br>
+${Math.round(distanciaPonto)} metros
+<br><br>
+Linhas:
+<br>
+${ponto.linhas.join(" • ")}
+`
+
+);
+
+
+marcadoresPontos.push(
+marker
+);
+
+}
+
+}
+
+);
+
+}
+
+
+/* ======================================
+   ESCOLHER DESTINO
+====================================== */
+
+function selecionarDestino(
+destino
+) {
+
+
+destinoAtual =
+destino;
+
+
+mostrarOpcoes(
+destino
+);
+
+}
+
+
+/* ======================================
+   MOSTRAR TODAS AS LINHAS
+   QUE LEVAM AO DESTINO
+====================================== */
+
+function mostrarOpcoes(
+destino
+) {
+
+
+const lista =
+document.getElementById(
+"listaLinhas"
+);
+
+
+lista.innerHTML = "";
+
+
+const linhasDisponiveis = [];
+
+
+Object.keys(linhas).forEach(
+
+codigo => {
+
+
+const linha =
+linhas[codigo];
+
+
+if (
+linha.destinos.includes(
+destino
+)
+) {
+
+linhasDisponiveis.push(
+codigo
+);
+
+}
+
+});
+
+
+if (
+linhasDisponiveis.length === 0
+) {
+
+lista.innerHTML =
+
+`
+<p style="color:#888">
+Nenhuma linha encontrada para este destino.
+</p>
+`;
+
+return;
+
+}
+
+
+/*
+Ordena pelo ônibus
+que chega primeiro
+*/
+
+linhasDisponiveis.sort(
+
+(a,b) =>
+
+linhas[a].tempo -
+linhas[b].tempo
+
+);
+
+
+linhasDisponiveis.forEach(
+
+codigo => {
+
+
+const linha =
+linhas[codigo];
+
+
+const elemento =
+document.createElement(
+"div"
+);
+
+
+elemento.className =
+"linha";
+
+
+elemento.onclick =
+
+function() {
+
+abrirDetalhes(
+codigo
+);
+
+};
+
+
+elemento.innerHTML =
+
+`
+
+<div class="linha-info">
+
+<div class="status verde">
+</div>
+
+<div>
+
+<div class="codigo">
+${codigo}
+</div>
+
+<div class="destino-linha">
+→ ${destino}
+</div>
+
+</div>
+
+</div>
+
+<div class="tempo">
+${linha.tempo} min
+</div>
+
+`;
+
+
+lista.appendChild(
+elemento
+);
+
+});
+
+}
+
+
+/* ======================================
+   DETALHES
+====================================== */
+
+function abrirDetalhes(
+codigo
+) {
+
+
+const linha =
+linhas[codigo];
+
+
+document.getElementById(
+"tituloLinha"
+).innerText =
+codigo;
+
+
+document.getElementById(
+"destinoSelecionado"
+).innerText =
+destinoAtual;
+
+
+document.getElementById(
+"tempoLinha"
+).innerText =
+
+linha.tempo +
+" min";
+
+
+document.getElementById(
+"pontoLinha"
+).innerText =
+
+encontrarPontoMaisProximo(
+codigo
+);
+
+
+document.getElementById(
+"detalhes"
+).style.display =
+"block";
+
+}
+
+
+/* ======================================
+   ENCONTRAR PONTO MAIS PRÓXIMO
+====================================== */
+
+function encontrarPontoMaisProximo(
+codigo
+) {
+
+
+if (!usuario) {
+
+return "Localização não disponível";
+
+}
+
+
+let menorDistancia =
+Infinity;
+
+
+pontos.forEach(
+
+ponto => {
+
+
+if (
+ponto.linhas.includes(
+codigo
+)
+) {
+
+
+const d =
+distancia(
+
+usuario.lat,
+usuario.lon,
+
+ponto.lat,
+ponto.lon
+
+);
+
+
+if (
+d < menorDistancia
+) {
+
+menorDistancia =
+d;
+
+}
+
+}
+
+});
+
+
+if (
+menorDistancia === Infinity
+) {
+
+return "Nenhum ponto próximo";
+
+}
+
+
+return (
+Math.round(
+menorDistancia
+) +
+" metros"
+);
+
+}
+
+
+/* ======================================
+   MOSTRAR ÔNIBUS / ROTA
+====================================== */
+
+function acompanharRota() {
+
+
+if (!destinoAtual) {
+
+return;
+
+}
+
+
+alert(
+
+"Mostrando todas as opções para " +
+destinoAtual
+
+);
+
+
+fecharDetalhes();
+
+}
+
+
+/* ======================================
+   FECHAR
+====================================== */
+
+function fecharDetalhes() {
+
+document.getElementById(
+"detalhes"
+).style.display =
+"none";
+
+}
+
+
+/* ======================================
+   INICIAR
+====================================== */
+
+localizarUsuario();
+
+</script>
+
+</body>
+
+</html>
