@@ -7,7 +7,6 @@
 
     <title>BusReview</title>
 
-    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -21,7 +20,9 @@
             box-sizing: border-box;
         }
 
-        html, body, #map {
+        html,
+        body,
+        #map {
             width: 100%;
             height: 100%;
         }
@@ -35,14 +36,10 @@
             background: #111;
         }
 
-        /* LOGO */
-
         .logo {
             position: absolute;
-
             top: 15px;
             left: 50%;
-
             transform: translateX(-50%);
 
             z-index: 1000;
@@ -51,25 +48,16 @@
             color: #5271ff;
 
             padding: 12px 22px;
-
             border-radius: 15px;
 
             font-size: 21px;
             font-weight: bold;
 
             border: 1px solid #222;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,.6);
         }
 
-
-        /* BOTÃO DE LOCALIZAÇÃO */
-
         .localizar {
-
             position: absolute;
-
             right: 20px;
             bottom: 25px;
 
@@ -79,26 +67,16 @@
             height: 55px;
 
             border: none;
-
             border-radius: 50%;
 
             background: #5271ff;
-
             color: white;
 
             font-size: 22px;
-
             cursor: pointer;
-
-            box-shadow:
-                0 4px 15px rgba(0,0,0,.6);
         }
 
-
-        /* PAINEL */
-
         .painel {
-
             position: absolute;
 
             left: 50%;
@@ -107,10 +85,9 @@
             transform: translateX(-50%);
 
             width: 92%;
-            max-width: 420px;
+            max-width: 430px;
 
             background: #111;
-
             color: white;
 
             border-radius: 18px;
@@ -119,25 +96,36 @@
 
             z-index: 2000;
 
-            box-shadow:
-                0 5px 25px rgba(0,0,0,.8);
+            box-shadow: 0 5px 25px rgba(0,0,0,.8);
 
             display: none;
-        }
 
+            max-height: 75vh;
+            overflow-y: auto;
+        }
 
         .painel h2 {
-
             color: #5271ff;
-
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
+        .fechar {
+            position: absolute;
 
-        /* LINHAS */
+            right: 15px;
+            top: 10px;
+
+            border: none;
+            background: none;
+
+            color: white;
+
+            font-size: 25px;
+
+            cursor: pointer;
+        }
 
         .linha {
-
             background: #1c1c1c;
 
             border: 1px solid #292929;
@@ -151,48 +139,26 @@
             cursor: pointer;
         }
 
-
         .linha:hover {
-
             background: #252525;
         }
 
-
-        /* TEMPO */
-
         .tempo {
-
             color: #55d66b;
-
             font-weight: bold;
         }
 
-
-        /* BOTÃO FECHAR */
-
-        .fechar {
-
-            position: absolute;
-
-            right: 15px;
-            top: 12px;
-
-            border: none;
-
-            background: none;
-
-            color: white;
-
-            font-size: 22px;
-
-            cursor: pointer;
+        .carregando {
+            text-align: center;
+            padding: 20px;
         }
 
-
-        /* BOTÃO */
+        .erro {
+            color: #ff7070;
+            margin-top: 10px;
+        }
 
         .botao {
-
             width: 100%;
 
             margin-top: 15px;
@@ -200,53 +166,38 @@
             padding: 12px;
 
             border: none;
-
             border-radius: 10px;
 
             background: #5271ff;
-
             color: white;
 
             font-size: 16px;
-
             font-weight: bold;
 
             cursor: pointer;
         }
 
-
-        /* OPÇÕES */
-
         .opcao {
-
             display: flex;
-
             gap: 8px;
-
             margin-top: 10px;
         }
 
-
         .opcao button {
-
             flex: 1;
 
             padding: 10px;
 
             border: 1px solid #333;
-
             border-radius: 9px;
 
             background: #1b1b1b;
-
             color: white;
 
             cursor: pointer;
         }
 
-
         .opcao button:hover {
-
             background: #5271ff;
         }
 
@@ -254,942 +205,962 @@
 
 </head>
 
-
 <body>
 
-
-<!-- LOGO -->
-
-<div class="logo">
-    🚌 BusReview
-</div>
-
-
-<!-- BOTÃO LOCALIZAÇÃO -->
-
-<button
-    class="localizar"
-    onclick="localizarUsuario()">
-
-    📍
-
-</button>
-
-
-<!-- MAPA -->
-
-<div id="map"></div>
-
-
-<!-- PAINEL -->
-
-<div
-    id="painel"
-    class="painel">
+    <div class="logo">
+        🚌 BusReview
+    </div>
 
     <button
-        class="fechar"
-        onclick="fecharPainel()">
+        class="localizar"
+        onclick="localizarUsuario()">
 
-        ×
+        📍
 
     </button>
 
-    <div id="conteudo"></div>
+    <div id="map"></div>
 
-</div>
+    <div
+        id="painel"
+        class="painel">
 
+        <button
+            class="fechar"
+            onclick="fecharPainel()">
 
-<!-- LEAFLET -->
+            ×
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        </button>
 
+        <div id="conteudo"></div>
 
-<script>
+    </div>
 
 
-    // ==========================================
-    // MAPA
-    // ==========================================
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    const map = L.map("map");
 
+    <script>
 
-    // MAPA ESCURO
+        // ==========================================
+        // MAPA
+        // ==========================================
 
-    L.tileLayer(
+        const map = L.map("map");
 
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-
-        {
-
-            attribution:
-                '&copy; OpenStreetMap &copy; CARTO',
-
-            subdomains: "abcd",
-
-            maxZoom: 20
-
-        }
-
-    ).addTo(map);
-
-
-    // POSIÇÃO INICIAL
-
-    map.setView(
-
-        [-23.7000, -46.7000],
-
-        13
-
-    );
-
-
-    // ==========================================
-    // VARIÁVEIS
-    // ==========================================
-
-    let marcadorUsuario = null;
-
-    let circulo = null;
-
-    let marcadoresPontos = [];
-
-
-    // ==========================================
-    // LOCALIZAÇÃO EM TEMPO REAL
-    // ==========================================
-
-    function localizarUsuario() {
-
-
-        // Verifica se o navegador possui GPS
-
-        if (!navigator.geolocation) {
-
-            alert(
-                "Seu navegador não suporta localização."
-            );
-
-            return;
-        }
-
-
-        // Acompanha a localização continuamente
-
-        navigator.geolocation.watchPosition(
-
-
-            function(position) {
-
-
-                const lat =
-                    position.coords.latitude;
-
-
-                const lon =
-                    position.coords.longitude;
-
-
-                console.log(
-                    "Nova localização:",
-                    lat,
-                    lon
-                );
-
-
-                // Atualiza marcador
-
-                mostrarUsuario(
-                    lat,
-                    lon
-                );
-
-
-            },
-
-
-            function(error) {
-
-
-                console.log(
-                    "Erro de localização:",
-                    error
-                );
-
-
-                if (error.code === 1) {
-
-                    alert(
-                        "Permita o acesso à sua localização."
-                    );
-
-                }
-
-
-                else if (error.code === 2) {
-
-                    alert(
-                        "Sua localização não está disponível."
-                    );
-
-                }
-
-
-                else if (error.code === 3) {
-
-                    alert(
-                        "Tempo esgotado para encontrar sua localização."
-                    );
-
-                }
-
-            },
-
-
+        L.tileLayer(
+            "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
             {
+                attribution:
+                    '&copy; OpenStreetMap &copy; CARTO',
 
-                enableHighAccuracy: true,
+                subdomains: "abcd",
 
-                maximumAge: 5000,
-
-                timeout: 15000
-
+                maxZoom: 20
             }
+        ).addTo(map);
 
-        );
-
-    }
-
-
-    // ==========================================
-    // MOSTRAR USUÁRIO
-    // ==========================================
-
-    function mostrarUsuario(
-        lat,
-        lon
-    ) {
-
-
-        // Remove marcador anterior
-
-        if (marcadorUsuario) {
-
-            map.removeLayer(
-                marcadorUsuario
-            );
-
-        }
-
-
-        // Remove círculo anterior
-
-        if (circulo) {
-
-            map.removeLayer(
-                circulo
-            );
-
-        }
-
-
-        // ======================================
-        // MARCADOR DO USUÁRIO
-        // ======================================
-
-        marcadorUsuario =
-            L.circleMarker(
-
-                [lat, lon],
-
-                {
-
-                    radius: 9,
-
-                    color: "white",
-
-                    weight: 3,
-
-                    fillColor: "#5271ff",
-
-                    fillOpacity: 1
-
-                }
-
-            ).addTo(map);
-
-
-        marcadorUsuario.bindPopup(
-            "<b>📍 Você está aqui</b>"
-        );
-
-
-        // ======================================
-        // RAIO DE 2 KM
-        // ======================================
-
-        circulo =
-            L.circle(
-
-                [lat, lon],
-
-                {
-
-                    radius: 2000,
-
-                    color: "#5271ff",
-
-                    weight: 2,
-
-                    fillColor: "#5271ff",
-
-                    fillOpacity: 0.08
-
-                }
-
-            ).addTo(map);
-
-
-        // ======================================
-        // ACOMPANHA O USUÁRIO
-        // ======================================
 
         map.setView(
-
-            [lat, lon],
-
-            map.getZoom(),
-
-            {
-                animate: true
-            }
-
+            [-23.7000, -46.7000],
+            13
         );
 
-    }
+
+        // ==========================================
+        // VARIÁVEIS
+        // ==========================================
+
+        let marcadorUsuario = null;
+
+        let circulo = null;
+
+        let paradas = [];
+
+        let localizacaoAtual = null;
 
 
-    // ==========================================
-    // BUSCAR PONTOS DE ÔNIBUS
-    // ==========================================
+        // ==========================================
+        // LOCALIZAÇÃO
+        // ==========================================
 
-    async function buscarPontos(
-        lat,
-        lon
-    ) {
+        function localizarUsuario() {
+
+            if (!navigator.geolocation) {
+
+                alert(
+                    "Seu navegador não suporta localização."
+                );
+
+                return;
+            }
 
 
-        const consulta = `
+            navigator.geolocation.watchPosition(
 
-            [out:json][timeout:25];
+                function(position) {
 
-            (
+                    const lat =
+                        position.coords.latitude;
 
-                node
-                ["highway"="bus_stop"]
-                (around:2000,${lat},${lon});
+                    const lon =
+                        position.coords.longitude;
 
-                node
-                ["public_transport"="platform"]
-                ["bus"="yes"]
-                (around:2000,${lat},${lon});
+
+                    localizacaoAtual = {
+                        lat,
+                        lon
+                    };
+
+
+                    mostrarUsuario(
+                        lat,
+                        lon
+                    );
+
+                },
+
+
+                function(error) {
+
+                    console.log(
+                        "Erro GPS:",
+                        error
+                    );
+
+                    alert(
+                        "Permita o acesso à localização no navegador."
+                    );
+
+                },
+
+
+                {
+                    enableHighAccuracy: true,
+
+                    maximumAge: 5000,
+
+                    timeout: 15000
+                }
 
             );
 
-            out body;
-
-        `;
+        }
 
 
-        const servidores = [
+        // ==========================================
+        // MOSTRAR USUÁRIO
+        // ==========================================
 
-
-            "https://overpass-api.de/api/interpreter",
-
-
-            "https://overpass.kumi.systems/api/interpreter",
-
-
-            "https://overpass.private.coffee/api/interpreter"
-
-
-        ];
-
-
-        let dados = null;
-
-
-        // Tenta os servidores
-
-        for (
-            const servidor of servidores
+        function mostrarUsuario(
+            lat,
+            lon
         ) {
+
+            if (marcadorUsuario) {
+
+                map.removeLayer(
+                    marcadorUsuario
+                );
+
+            }
+
+
+            if (circulo) {
+
+                map.removeLayer(
+                    circulo
+                );
+
+            }
+
+
+            marcadorUsuario =
+                L.circleMarker(
+
+                    [lat, lon],
+
+                    {
+                        radius: 9,
+
+                        color: "white",
+
+                        weight: 3,
+
+                        fillColor: "#5271ff",
+
+                        fillOpacity: 1
+                    }
+
+                ).addTo(map);
+
+
+            marcadorUsuario.bindPopup(
+                "<b>📍 Você está aqui</b>"
+            );
+
+
+            circulo =
+                L.circle(
+
+                    [lat, lon],
+
+                    {
+                        radius: 2000,
+
+                        color: "#5271ff",
+
+                        weight: 2,
+
+                        fillColor: "#5271ff",
+
+                        fillOpacity: 0.08
+                    }
+
+                ).addTo(map);
+
+
+            map.setView(
+                [lat, lon],
+                14
+            );
+
+
+            carregarParadas(
+                lat,
+                lon
+            );
+
+        }
+
+
+        // ==========================================
+        // BUSCAR PARADAS NO BACKEND
+        // ==========================================
+
+        async function carregarParadas(
+            lat,
+            lon
+        ) {
+
+            try {
+
+                const resposta =
+                    await fetch(
+                        `/api/paradas?lat=${lat}&lon=${lon}`
+                    );
+
+
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        "Erro ao buscar paradas"
+                    );
+
+                }
+
+
+                const dados =
+                    await resposta.json();
+
+
+                mostrarParadas(
+                    dados
+                );
+
+
+            }
+            catch (erro) {
+
+                console.error(
+                    erro
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // MOSTRAR PARADAS
+        // ==========================================
+
+        function mostrarParadas(
+            dados
+        ) {
+
+            paradas.forEach(
+                marker =>
+                    map.removeLayer(marker)
+            );
+
+
+            paradas = [];
+
+
+            dados.forEach(
+                parada => {
+
+                    const marker =
+                        L.circleMarker(
+
+                            [
+                                parada.py,
+                                parada.px
+                            ],
+
+                            {
+                                radius: 8,
+
+                                color: "white",
+
+                                weight: 2,
+
+                                fillColor: "#5271ff",
+
+                                fillOpacity: 1
+                            }
+
+                        ).addTo(map);
+
+
+                    marker.on(
+                        "click",
+                        function() {
+
+                            abrirParada(
+                                parada
+                            );
+
+                        }
+                    );
+
+
+                    paradas.push(
+                        marker
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ==========================================
+        // ABRIR PARADA
+        // ==========================================
+
+        async function abrirParada(
+            parada
+        ) {
+
+            const painel =
+                document.getElementById(
+                    "painel"
+                );
+
+
+            const conteudo =
+                document.getElementById(
+                    "conteudo"
+                );
+
+
+            painel.style.display =
+                "block";
+
+
+            conteudo.innerHTML = `
+
+                <h2>
+                    🚌 ${escapeHtml(parada.np)}
+                </h2>
+
+                <p>
+                    ${escapeHtml(
+                        parada.ed || ""
+                    )}
+                </p>
+
+                <div class="carregando">
+
+                    ⏱️ Buscando
+                    ônibus chegando...
+
+                </div>
+
+            `;
 
 
             try {
 
-
                 const resposta =
                     await fetch(
-
-                        servidor,
-
-                        {
-
-                            method: "POST",
-
-                            body: consulta
-
-                        }
-
+                        `/api/previsao/${parada.cp}`
                     );
 
 
-                if (resposta.ok) {
+                const dados =
+                    await resposta.json();
 
-                    dados =
-                        await resposta.json();
 
-                    break;
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        dados.error ||
+                        "Erro na SPTrans"
+                    );
 
                 }
 
 
-            }
-
-            catch (erro) {
-
-                console.log(
-                    "Servidor indisponível:",
-                    servidor
+                mostrarPrevisoes(
+                    dados
                 );
 
+
+            }
+            catch (erro) {
+
+                console.error(
+                    erro
+                );
+
+
+                conteudo.innerHTML += `
+
+                    <p class="erro">
+
+                        Não foi possível obter
+                        a previsão desta parada.
+
+                    </p>
+
+                `;
+
             }
 
         }
 
 
-        if (!dados) {
+        // ==========================================
+        // MOSTRAR PREVISÕES
+        // ==========================================
 
-            alert(
-                "Não foi possível carregar os pontos de ônibus."
-            );
+        function mostrarPrevisoes(
+            dados
+        ) {
 
-            return;
-
-        }
-
-
-        // Remove pontos anteriores
-
-        marcadoresPontos.forEach(
-
-            marker =>
-                map.removeLayer(marker)
-
-        );
+            const conteudo =
+                document.getElementById(
+                    "conteudo"
+                );
 
 
-        marcadoresPontos = [];
+            if (
+                !dados ||
+                !dados.p ||
+                !dados.p.l ||
+                dados.p.l.length === 0
+            ) {
+
+                conteudo.innerHTML += `
+
+                    <p>
+                        Nenhum ônibus foi localizado
+                        para previsão neste momento.
+                    </p>
+
+                `;
+
+                return;
+
+            }
 
 
-        // ======================================
-        // CRIA OS PONTOS
-        // ======================================
+            let html = `
 
-        dados.elements.forEach(
+                <h2>
+                    🚌 ${escapeHtml(
+                        dados.p.np
+                    )}
+                </h2>
 
-            ponto => {
+                <p>
+                    Atualizado às
+                    ${escapeHtml(
+                        dados.hr || "--:--"
+                    )}
+                </p>
 
-
-                if (
-                    !ponto.lat ||
-                    !ponto.lon
-                ) {
-
-                    return;
-
-                }
-
-
-                const nome =
-                    ponto.tags?.name ||
-                    "Ponto de ônibus";
+            `;
 
 
-                const marker =
-                    L.circleMarker(
+            dados.p.l.forEach(
+                linha => {
 
-                        [
-                            ponto.lat,
-                            ponto.lon
-                        ],
+                    html += `
 
-                        {
+                        <div
+                            class="linha"
+                            onclick="
+                                abrirLinha(
+                                    '${escapeAttr(linha.c)}',
+                                    '${escapeAttr(linha.lt0)}',
+                                    ${linha.cl}
+                                )
+                            "
+                        >
 
-                            radius: 8,
+                            <b>
+                                ${escapeHtml(
+                                    linha.c
+                                )}
+                            </b>
 
-                            color: "white",
+                            <br>
 
-                            weight: 2,
+                            → ${escapeHtml(
+                                linha.lt0
+                            )}
 
-                            fillColor: "#5271ff",
+                            <br><br>
 
-                            fillOpacity: 1
-
-                        }
-
-                    ).addTo(map);
+                    `;
 
 
-                // Clique no ponto
+                    if (
+                        linha.vs &&
+                        linha.vs.length > 0
+                    ) {
 
-                marker.on(
+                        linha.vs
+                            .slice(0, 3)
+                            .forEach(
+                                veiculo => {
 
-                    "click",
+                                    html += `
 
-                    function() {
+                                        <span class="tempo">
 
-                        abrirPonto(nome);
+                                            🟢
+                                            ${tempoAte(
+                                                veiculo.t
+                                            )}
+
+                                        </span>
+
+                                        <br>
+
+                                    `;
+
+                                }
+                            );
+
+                    }
+                    else {
+
+                        html += `
+
+                            <span>
+                                Sem previsão disponível
+                            </span>
+
+                        `;
 
                     }
 
-                );
 
+                    html += `
 
-                marcadoresPontos.push(
-                    marker
-                );
+                        </div>
 
-            }
+                    `;
 
-        );
-
-    }
-
-
-    // ==========================================
-    // ABRIR PONTO
-    // ==========================================
-
-    function abrirPonto(nome) {
-
-
-        const painel =
-            document.getElementById(
-                "painel"
+                }
             );
 
 
-        const conteudo =
-            document.getElementById(
-                "conteudo"
-            );
-
-
-        conteudo.innerHTML = `
-
-            <h2>
-                🚌 ${nome}
-            </h2>
-
-
-            <p>
-                Linhas disponíveis neste ponto:
-            </p>
-
-
-            <div
-                class="linha"
-                onclick="
-                    abrirLinha(
-                        '675A-10',
-                        'Terminal Santo Amaro',
-                        4
-                    )
-                "
-            >
-
-                <b>
-                    675A-10
-                </b>
-
-                <br>
-
-                → Terminal Santo Amaro
-
-                <br><br>
-
-                <span class="tempo">
-                    🟢 Chega em 4 min
-                </span>
-
-            </div>
-
-
-            <div
-                class="linha"
-                onclick="
-                    abrirLinha(
-                        '607C-10',
-                        'Terminal Grajaú',
-                        11
-                    )
-                "
-            >
-
-                <b>
-                    607C-10
-                </b>
-
-                <br>
-
-                → Terminal Grajaú
-
-                <br><br>
-
-                <span class="tempo">
-                    🟢 Chega em 11 min
-                </span>
-
-            </div>
-
-
-            <div
-                class="linha"
-                onclick="
-                    abrirLinha(
-                        '6000-10',
-                        'Terminal Santo Amaro',
-                        17
-                    )
-                "
-            >
-
-                <b>
-                    6000-10
-                </b>
-
-                <br>
-
-                → Terminal Santo Amaro
-
-                <br><br>
-
-                <span class="tempo">
-                    🟡 Chega em 17 min
-                </span>
-
-            </div>
-
-        `;
-
-
-        painel.style.display =
-            "block";
-
-    }
-
-
-    // ==========================================
-    // ABRIR LINHA
-    // ==========================================
-
-    function abrirLinha(
-        codigo,
-        destino,
-        tempo
-    ) {
-
-
-        const conteudo =
-            document.getElementById(
-                "conteudo"
-            );
-
-
-        conteudo.innerHTML = `
-
-            <h2>
-                🚌 ${codigo}
-            </h2>
-
-
-            <p>
-                <b>Destino:</b>
-                ${destino}
-            </p>
-
-
-            <p style="margin-top:10px">
-
-                <b>
-                    Próximo ônibus:
-                </b>
-
-                <span class="tempo">
-                    ${tempo} minutos
-                </span>
-
-            </p>
-
-
-            <p style="margin-top:10px">
-
-                🟢 Operação normal
-
-            </p>
-
-
-            <button
-                class="botao"
-                onclick="
-                    abrirAvaliacao('${codigo}')
-                "
-            >
-
-                ⭐ Avaliar viagem
-
-            </button>
-
-        `;
-
-    }
-
-
-    // ==========================================
-    // AVALIAÇÃO
-    // ==========================================
-
-    function abrirAvaliacao(
-        codigo
-    ) {
-
-
-        const conteudo =
-            document.getElementById(
-                "conteudo"
-            );
-
-
-        conteudo.innerHTML = `
-
-            <h2>
-                ⭐ Avaliar ${codigo}
-            </h2>
-
-
-            <p>
-                Como estava o ônibus?
-            </p>
-
-
-            <div class="opcao">
-
-                <button
-                    onclick="
-                        selecionar(
-                            'lotacao',
-                            'Normal'
-                        )
-                    "
-                >
-                    🟢 Normal
-                </button>
-
-
-                <button
-                    onclick="
-                        selecionar(
-                            'lotacao',
-                            'Cheio'
-                        )
-                    "
-                >
-                    🟡 Cheio
-                </button>
-
-
-                <button
-                    onclick="
-                        selecionar(
-                            'lotacao',
-                            'Muito cheio'
-                        )
-                    "
-                >
-                    🔴 Muito cheio
-                </button>
-
-            </div>
-
-
-            <br>
-
-
-            <p>
-                Você conseguiu embarcar?
-            </p>
-
-
-            <div class="opcao">
-
-                <button
-                    onclick="
-                        selecionar(
-                            'embarque',
-                            'Sim'
-                        )
-                    "
-                >
-                    Sim
-                </button>
-
-
-                <button
-                    onclick="
-                        selecionar(
-                            'embarque',
-                            'Não'
-                        )
-                    "
-                >
-                    Não
-                </button>
-
-            </div>
-
-
-            <br>
-
-
-            <p>
-                Houve atraso?
-            </p>
-
-
-            <div class="opcao">
-
-                <button
-                    onclick="
-                        selecionar(
-                            'atraso',
-                            'Não'
-                        )
-                    "
-                >
-                    Não
-                </button>
-
-
-                <button
-                    onclick="
-                        selecionar(
-                            'atraso',
-                            'Sim'
-                        )
-                    "
-                >
-                    Sim
-                </button>
-
-            </div>
-
-
-            <button
-                class="botao"
-                onclick="
-                    enviarAvaliacao()
-                "
-            >
-
-                Enviar avaliação
-
-            </button>
-
-        `;
-
-    }
-
-
-    // ==========================================
-    // DADOS DA AVALIAÇÃO
-    // ==========================================
-
-    let avaliacao = {};
-
-
-    function selecionar(
-        tipo,
-        valor
-    ) {
-
-        avaliacao[tipo] =
-            valor;
-
-    }
-
-
-    // ==========================================
-    // ENVIAR AVALIAÇÃO
-    // ==========================================
-
-    function enviarAvaliacao() {
-
-
-        if (
-            !avaliacao.lotacao ||
-            !avaliacao.embarque ||
-            !avaliacao.atraso
-        ) {
-
-            alert(
-                "Responda todas as perguntas."
-            );
-
-            return;
+            conteudo.innerHTML =
+                html;
 
         }
 
 
-        alert(
-            "Avaliação enviada com sucesso!"
-        );
+        // ==========================================
+        // CONVERTER HORÁRIO EM MINUTOS
+        // ==========================================
+
+        function tempoAte(
+            horario
+        ) {
+
+            if (!horario) {
+
+                return "horário indisponível";
+
+            }
 
 
-        avaliacao = {};
+            const agora =
+                new Date();
 
 
-        fecharPainel();
-
-    }
-
-
-    // ==========================================
-    // FECHAR PAINEL
-    // ==========================================
-
-    function fecharPainel() {
+            const partes =
+                horario.split(":");
 
 
-        document.getElementById(
-            "painel"
-        ).style.display =
-            "none";
-
-    }
+            const chegada =
+                new Date();
 
 
-    // ==========================================
-    // INICIAR LOCALIZAÇÃO
-    // ==========================================
+            chegada.setHours(
+                Number(partes[0]),
+                Number(partes[1]),
+                0,
+                0
+            );
 
-    localizarUsuario();
+
+            let diferenca =
+                Math.round(
+                    (
+                        chegada - agora
+                    ) / 60000
+                );
 
 
-</script>
+            if (diferenca < 0) {
+
+                diferenca = 0;
+
+            }
+
+
+            if (diferenca === 0) {
+
+                return "chegando agora";
+
+            }
+
+
+            return `chega em ${diferenca} min`;
+
+        }
+
+
+        // ==========================================
+        // ABRIR LINHA
+        // ==========================================
+
+        function abrirLinha(
+            codigo,
+            destino,
+            codigoLinha
+        ) {
+
+            const conteudo =
+                document.getElementById(
+                    "conteudo"
+                );
+
+
+            conteudo.innerHTML = `
+
+                <h2>
+                    🚌 ${escapeHtml(codigo)}
+                </h2>
+
+                <p>
+
+                    <b>
+                        Destino:
+                    </b>
+
+                    ${escapeHtml(destino)}
+
+                </p>
+
+                <p
+                    style="margin-top:10px"
+                >
+
+                    Código SPTrans:
+                    ${codigoLinha}
+
+                </p>
+
+                <p
+                    style="margin-top:10px"
+                >
+
+                    🟢 Dados obtidos
+                    da SPTrans Olho Vivo
+
+                </p>
+
+                <button
+                    class="botao"
+                    onclick="
+                        abrirAvaliacao(
+                            '${escapeAttr(codigo)}'
+                        )
+                    "
+                >
+
+                    ⭐ Avaliar viagem
+
+                </button>
+
+            `;
+
+        }
+
+
+        // ==========================================
+        // AVALIAÇÃO
+        // ==========================================
+
+        let avaliacao = {};
+
+
+        function abrirAvaliacao(
+            codigo
+        ) {
+
+            const conteudo =
+                document.getElementById(
+                    "conteudo"
+                );
+
+
+            conteudo.innerHTML = `
+
+                <h2>
+                    ⭐ Avaliar ${escapeHtml(codigo)}
+                </h2>
+
+                <p>
+                    Como estava o ônibus?
+                </p>
+
+                <div class="opcao">
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'lotacao',
+                                'Normal'
+                            )
+                        "
+                    >
+                        🟢 Normal
+                    </button>
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'lotacao',
+                                'Cheio'
+                            )
+                        "
+                    >
+                        🟡 Cheio
+                    </button>
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'lotacao',
+                                'Muito cheio'
+                            )
+                        "
+                    >
+                        🔴 Muito cheio
+                    </button>
+
+                </div>
+
+
+                <br>
+
+
+                <p>
+                    Você conseguiu embarcar?
+                </p>
+
+
+                <div class="opcao">
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'embarque',
+                                'Sim'
+                            )
+                        "
+                    >
+                        Sim
+                    </button>
+
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'embarque',
+                                'Não'
+                            )
+                        "
+                    >
+                        Não
+                    </button>
+
+                </div>
+
+
+                <br>
+
+
+                <p>
+                    Houve atraso?
+                </p>
+
+
+                <div class="opcao">
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'atraso',
+                                'Não'
+                            )
+                        "
+                    >
+                        Não
+                    </button>
+
+
+                    <button
+                        onclick="
+                            selecionar(
+                                'atraso',
+                                'Sim'
+                            )
+                        "
+                    >
+                        Sim
+                    </button>
+
+                </div>
+
+
+                <button
+                    class="botao"
+                    onclick="
+                        enviarAvaliacao()
+                    "
+                >
+
+                    Enviar avaliação
+
+                </button>
+
+            `;
+
+        }
+
+
+        function selecionar(
+            tipo,
+            valor
+        ) {
+
+            avaliacao[tipo] =
+                valor;
+
+        }
+
+
+        function enviarAvaliacao() {
+
+            if (
+                !avaliacao.lotacao ||
+                !avaliacao.embarque ||
+                !avaliacao.atraso
+            ) {
+
+                alert(
+                    "Responda todas as perguntas."
+                );
+
+                return;
+
+            }
+
+
+            alert(
+                "Avaliação enviada!"
+            );
+
+
+            avaliacao = {};
+
+            fecharPainel();
+
+        }
+
+
+        // ==========================================
+        // FECHAR
+        // ==========================================
+
+        function fecharPainel() {
+
+            document.getElementById(
+                "painel"
+            ).style.display =
+                "none";
+
+        }
+
+
+        // ==========================================
+        // SEGURANÇA
+        // ==========================================
+
+        function escapeHtml(
+            texto
+        ) {
+
+            return String(texto || "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+
+        }
+
+
+        function escapeAttr(
+            texto
+        ) {
+
+            return String(texto || "")
+                .replaceAll("\\", "\\\\")
+                .replaceAll("'", "\\'");
+
+        }
+
+
+        // ==========================================
+        // INICIAR
+        // ==========================================
+
+        localizarUsuario();
+
+    </script>
 
 </body>
 
