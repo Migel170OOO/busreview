@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>BusSul</title>
+    <title>BusReview</title>
 
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
     <style>
+
         * {
             margin: 0;
             padding: 0;
@@ -22,79 +25,498 @@
             width: 100%;
             height: 100%;
         }
+
+        body {
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Título */
+        .titulo {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 1000;
+
+            background: #080808;
+            color: #5271ff;
+
+            padding: 12px 22px;
+
+            border: 1px solid #222;
+            border-radius: 14px;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+        }
+
+        /* Botão localização */
+        .localizacao {
+            position: absolute;
+
+            bottom: 25px;
+            right: 20px;
+
+            z-index: 1000;
+
+            background: #5271ff;
+            color: white;
+
+            border: none;
+            border-radius: 50%;
+
+            width: 55px;
+            height: 55px;
+
+            font-size: 23px;
+
+            cursor: pointer;
+
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+        }
+
+        .localizacao:hover {
+            transform: scale(1.05);
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div id="map"></div>
+    <div class="titulo">
+        🚌 BusReview
+    </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <button
+        class="localizacao"
+        onclick="localizarUsuario()"
+        title="Minha localização">
+        📍
+    </button>
 
-<script>
-
-    // ==========================================
-    // ZONA SUL DE SÃO PAULO
-    // ==========================================
-
-    const limiteZonaSul = [
-        [-23.85, -46.85],
-        [-23.45, -46.50]
-    ];
+    <div id="map"></div>
 
 
-    // ==========================================
-    // CRIA O MAPA
-    // ==========================================
-
-    const map = L.map("map", {
-
-        // Não deixa sair da região
-        maxBounds: limiteZonaSul,
-
-        maxBoundsViscosity: 1.0,
-
-        // NÃO permite diminuir até aparecer o Brasil
-        minZoom: 12,
-
-        maxZoom: 18
-
-    });
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
-    // ==========================================
-    // MAPA
-    // ==========================================
+    <script>
 
-    L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            attribution: "&copy; OpenStreetMap contributors"
+        // ==========================================
+        // CONFIGURAÇÕES
+        // ==========================================
+
+        const RAIO = 2000; // 2 km
+
+
+        // ==========================================
+        // CRIA O MAPA
+        // ==========================================
+
+        const map = L.map("map", {
+
+            zoomControl: true,
+
+            minZoom: 12,
+
+            maxZoom: 18
+
+        });
+
+
+        // ==========================================
+        // MAPA ESCURO
+        // ==========================================
+
+        L.tileLayer(
+            "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+            {
+                attribution:
+                '&copy; OpenStreetMap &copy; CARTO',
+
+                subdomains: "abcd",
+
+                maxZoom: 20
+            }
+        ).addTo(map);
+
+
+        // ==========================================
+        // VARIÁVEIS
+        // ==========================================
+
+        let usuarioMarker = null;
+
+        let raioCirculo = null;
+
+        let pontosOnibus = [];
+
+
+
+        // ==========================================
+        // LOCALIZAR USUÁRIO
+        // ==========================================
+
+        function localizarUsuario() {
+
+            if (!navigator.geolocation) {
+
+                alert(
+                    "Seu navegador não suporta localização."
+                );
+
+                return;
+            }
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(position) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+                    const longitude =
+                        position.coords.longitude;
+
+
+                    mostrarLocalizacao(
+                        latitude,
+                        longitude
+                    );
+
+                },
+
+                function(error) {
+
+                    alert(
+                        "Não foi possível acessar sua localização. " +
+                        "Verifique se você permitiu o acesso."
+                    );
+
+                },
+
+                {
+                    enableHighAccuracy: true,
+
+                    timeout: 10000,
+
+                    maximumAge: 0
+                }
+
+            );
+
         }
-    ).addTo(map);
 
 
-    // ==========================================
-    // CENTRO DA ZONA SUL
-    // ==========================================
 
-    map.setView(
-        [-23.7000, -46.7000],
-        12
-    );
+        // ==========================================
+        // MOSTRA A LOCALIZAÇÃO
+        // ==========================================
+
+        function mostrarLocalizacao(
+            latitude,
+            longitude
+        ) {
+
+            // Remove marcador anterior
+
+            if (usuarioMarker) {
+
+                map.removeLayer(
+                    usuarioMarker
+                );
+
+            }
 
 
-    // ==========================================
-    // MARCADOR DE INTERLAGOS
-    // ==========================================
+            // Remove círculo anterior
 
-    L.marker([-23.7000, -46.7000])
-        .addTo(map)
-        .bindPopup(
-            "<b>🚌 Interlagos</b><br>Zona Sul de São Paulo"
+            if (raioCirculo) {
+
+                map.removeLayer(
+                    raioCirculo
+                );
+
+            }
+
+
+            // Marcador do usuário
+
+            usuarioMarker = L.circleMarker(
+
+                [latitude, longitude],
+
+                {
+
+                    radius: 9,
+
+                    color: "#ffffff",
+
+                    weight: 3,
+
+                    fillColor: "#5271ff",
+
+                    fillOpacity: 1
+
+                }
+
+            ).addTo(map);
+
+
+            usuarioMarker.bindPopup(
+                "<b>📍 Você está aqui</b>"
+            );
+
+
+            // Círculo de 2 km
+
+            raioCirculo = L.circle(
+
+                [latitude, longitude],
+
+                {
+
+                    radius: RAIO,
+
+                    color: "#5271ff",
+
+                    weight: 2,
+
+                    fillColor: "#5271ff",
+
+                    fillOpacity: 0.08
+
+                }
+
+            ).addTo(map);
+
+
+            // Centraliza
+
+            map.setView(
+
+                [latitude, longitude],
+
+                14
+
+            );
+
+
+            // Procura pontos de ônibus
+
+            buscarPontosOnibus(
+                latitude,
+                longitude
+            );
+
+        }
+
+
+
+        // ==========================================
+        // BUSCAR PONTOS DE ÔNIBUS
+        // ==========================================
+
+        async function buscarPontosOnibus(
+
+            latitude,
+            longitude
+
+        ) {
+
+            // Limpa pontos antigos
+
+            pontosOnibus.forEach(
+
+                function(marker) {
+
+                    map.removeLayer(marker);
+
+                }
+
+            );
+
+            pontosOnibus = [];
+
+
+            // Consulta OpenStreetMap
+
+            const consulta = `
+
+                [out:json];
+
+                (
+
+                    node
+                    ["highway"="bus_stop"]
+                    (around:${RAIO},${latitude},${longitude});
+
+                    node
+                    ["public_transport"="platform"]
+                    ["bus"="yes"]
+                    (around:${RAIO},${latitude},${longitude});
+
+                );
+
+                out body;
+
+            `;
+
+
+            try {
+
+                const resposta = await fetch(
+
+                    "https://overpass-api.de/api/interpreter",
+
+                    {
+
+                        method: "POST",
+
+                        body: consulta
+
+                    }
+
+                );
+
+
+                const dados =
+                    await resposta.json();
+
+
+                // Cria os marcadores
+
+                dados.elements.forEach(
+
+                    function(ponto) {
+
+                        const lat =
+                            ponto.lat;
+
+                        const lon =
+                            ponto.lon;
+
+
+                        const nome =
+                            ponto.tags?.name
+                            || "Ponto de ônibus";
+
+
+                        const marker =
+                            L.circleMarker(
+
+                                [lat, lon],
+
+                                {
+
+                                    radius: 7,
+
+                                    color: "#5271ff",
+
+                                    weight: 2,
+
+                                    fillColor: "#5271ff",
+
+                                    fillOpacity: 1
+
+                                }
+
+                            ).addTo(map);
+
+
+                        marker.bindPopup(`
+
+                            <div style="
+                                color: #111;
+                                min-width: 160px;
+                            ">
+
+                                <b>🚌 ${nome}</b>
+
+                                <br><br>
+
+                                <span>
+                                    Ponto de ônibus
+                                </span>
+
+                                <br><br>
+
+                                <b>
+                                    Raio de busca:
+                                </b>
+
+                                2 km
+
+                            </div>
+
+                        `);
+
+
+                        pontosOnibus.push(
+                            marker
+                        );
+
+                    }
+
+                );
+
+
+                console.log(
+
+                    dados.elements.length +
+                    " pontos encontrados."
+
+                );
+
+            }
+
+            catch (erro) {
+
+                console.error(
+                    erro
+                );
+
+                alert(
+                    "Não foi possível carregar os pontos de ônibus."
+                );
+
+            }
+
+        }
+
+
+
+        // ==========================================
+        // INICIALIZA
+        // ==========================================
+
+        // Centro inicial:
+        // Interlagos / Zona Sul de SP
+
+        map.setView(
+
+            [-23.7000, -46.7000],
+
+            13
+
         );
 
-</script>
+
+        // Tenta localizar automaticamente
+
+        localizarUsuario();
+
+    </script>
 
 </body>
+
 </html>
