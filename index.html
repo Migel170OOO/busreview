@@ -7,7 +7,6 @@
 
     <title>BusReview</title>
 
-    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -31,12 +30,10 @@
             font-family: Arial, sans-serif;
         }
 
-        /* Título */
         .titulo {
             position: absolute;
             top: 15px;
             left: 50%;
-
             transform: translateX(-50%);
 
             z-index: 1000;
@@ -46,42 +43,62 @@
 
             padding: 12px 22px;
 
-            border: 1px solid #222;
             border-radius: 14px;
+            border: 1px solid #222;
 
             font-size: 20px;
             font-weight: bold;
-
-            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
         }
 
-        /* Botão localização */
         .localizacao {
             position: absolute;
-
-            bottom: 25px;
             right: 20px;
+            bottom: 25px;
 
             z-index: 1000;
-
-            background: #5271ff;
-            color: white;
-
-            border: none;
-            border-radius: 50%;
 
             width: 55px;
             height: 55px;
 
+            border: none;
+            border-radius: 50%;
+
+            background: #5271ff;
+            color: white;
+
             font-size: 23px;
 
             cursor: pointer;
-
-            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
         }
 
-        .localizacao:hover {
-            transform: scale(1.05);
+        .status {
+            position: absolute;
+            left: 50%;
+            bottom: 20px;
+
+            transform: translateX(-50%);
+
+            z-index: 1000;
+
+            background: #080808;
+            color: white;
+
+            padding: 10px 16px;
+
+            border-radius: 10px;
+
+            font-size: 14px;
+
+            display: none;
+        }
+
+        .bus-stop-icon {
+            background: #5271ff;
+            border: 3px solid white;
+            border-radius: 50%;
+
+            width: 18px;
+            height: 18px;
         }
 
     </style>
@@ -96,15 +113,15 @@
 
     <button
         class="localizacao"
-        onclick="localizarUsuario()"
-        title="Minha localização">
+        onclick="localizarUsuario()">
         📍
     </button>
+
+    <div id="status" class="status"></div>
 
     <div id="map"></div>
 
 
-    <!-- Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
@@ -114,33 +131,26 @@
         // CONFIGURAÇÕES
         // ==========================================
 
-        const RAIO = 2000; // 2 km
+        const RAIO = 2000;
+
+        let usuarioMarker = null;
+
+        let circulo = null;
+
+        let marcadores = [];
 
 
         // ==========================================
-        // CRIA O MAPA
+        // MAPA
         // ==========================================
 
-        const map = L.map("map", {
-
-            zoomControl: true,
-
-            minZoom: 12,
-
-            maxZoom: 18
-
-        });
-
-
-        // ==========================================
-        // MAPA ESCURO
-        // ==========================================
+        const map = L.map("map");
 
         L.tileLayer(
             "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
             {
                 attribution:
-                '&copy; OpenStreetMap &copy; CARTO',
+                    '&copy; OpenStreetMap &copy; CARTO',
 
                 subdomains: "abcd",
 
@@ -150,56 +160,62 @@
 
 
         // ==========================================
-        // VARIÁVEIS
+        // STATUS
         // ==========================================
 
-        let usuarioMarker = null;
+        function mostrarStatus(texto) {
 
-        let raioCirculo = null;
+            const status =
+                document.getElementById("status");
 
-        let pontosOnibus = [];
+            status.innerText = texto;
 
+            status.style.display = "block";
+
+        }
 
 
         // ==========================================
-        // LOCALIZAR USUÁRIO
+        // LOCALIZAÇÃO
         // ==========================================
 
         function localizarUsuario() {
 
             if (!navigator.geolocation) {
 
-                alert(
+                mostrarStatus(
                     "Seu navegador não suporta localização."
                 );
 
                 return;
             }
 
+            mostrarStatus(
+                "📍 Procurando sua localização..."
+            );
+
 
             navigator.geolocation.getCurrentPosition(
 
                 function(position) {
 
-                    const latitude =
+                    const lat =
                         position.coords.latitude;
 
-                    const longitude =
+                    const lon =
                         position.coords.longitude;
 
 
-                    mostrarLocalizacao(
-                        latitude,
-                        longitude
-                    );
+                    mostrarUsuario(lat, lon);
+
+                    buscarPontos(lat, lon);
 
                 },
 
-                function(error) {
+                function() {
 
-                    alert(
-                        "Não foi possível acessar sua localização. " +
-                        "Verifique se você permitiu o acesso."
+                    mostrarStatus(
+                        "⚠️ Permita o acesso à localização."
                     );
 
                 },
@@ -207,7 +223,7 @@
                 {
                     enableHighAccuracy: true,
 
-                    timeout: 10000,
+                    timeout: 15000,
 
                     maximumAge: 0
                 }
@@ -217,17 +233,11 @@
         }
 
 
-
         // ==========================================
-        // MOSTRA A LOCALIZAÇÃO
+        // MOSTRAR USUÁRIO
         // ==========================================
 
-        function mostrarLocalizacao(
-            latitude,
-            longitude
-        ) {
-
-            // Remove marcador anterior
+        function mostrarUsuario(lat, lon) {
 
             if (usuarioMarker) {
 
@@ -238,38 +248,33 @@
             }
 
 
-            // Remove círculo anterior
-
-            if (raioCirculo) {
+            if (circulo) {
 
                 map.removeLayer(
-                    raioCirculo
+                    circulo
                 );
 
             }
 
 
-            // Marcador do usuário
+            usuarioMarker =
+                L.circleMarker(
 
-            usuarioMarker = L.circleMarker(
+                    [lat, lon],
 
-                [latitude, longitude],
+                    {
+                        radius: 9,
 
-                {
+                        color: "white",
 
-                    radius: 9,
+                        weight: 3,
 
-                    color: "#ffffff",
+                        fillColor: "#5271ff",
 
-                    weight: 3,
+                        fillOpacity: 1
+                    }
 
-                    fillColor: "#5271ff",
-
-                    fillOpacity: 1
-
-                }
-
-            ).addTo(map);
+                ).addTo(map);
 
 
             usuarioMarker.bindPopup(
@@ -277,65 +282,155 @@
             );
 
 
-            // Círculo de 2 km
+            // Raio de 2 km
 
-            raioCirculo = L.circle(
+            circulo =
+                L.circle(
 
-                [latitude, longitude],
+                    [lat, lon],
 
-                {
+                    {
+                        radius: RAIO,
 
-                    radius: RAIO,
+                        color: "#5271ff",
 
-                    color: "#5271ff",
+                        weight: 2,
 
-                    weight: 2,
+                        fillColor: "#5271ff",
 
-                    fillColor: "#5271ff",
+                        fillOpacity: 0.08
+                    }
 
-                    fillOpacity: 0.08
+                ).addTo(map);
 
-                }
-
-            ).addTo(map);
-
-
-            // Centraliza
 
             map.setView(
-
-                [latitude, longitude],
-
+                [lat, lon],
                 14
-
-            );
-
-
-            // Procura pontos de ônibus
-
-            buscarPontosOnibus(
-                latitude,
-                longitude
             );
 
         }
 
 
-
         // ==========================================
-        // BUSCAR PONTOS DE ÔNIBUS
+        // BUSCAR PONTOS
         // ==========================================
 
-        async function buscarPontosOnibus(
+        async function buscarPontos(lat, lon) {
 
-            latitude,
-            longitude
+            mostrarStatus(
+                "🚌 Procurando pontos de ônibus..."
+            );
 
-        ) {
 
-            // Limpa pontos antigos
+            // Consulta do OpenStreetMap
 
-            pontosOnibus.forEach(
+            const consulta = `
+
+                [out:json][timeout:25];
+
+                (
+                    node
+                    ["highway"="bus_stop"]
+                    (around:${RAIO},${lat},${lon});
+
+                    node
+                    ["public_transport"="platform"]
+                    ["bus"="yes"]
+                    (around:${RAIO},${lat},${lon});
+
+                );
+
+                out body;
+
+            `;
+
+
+            // Servidores alternativos
+
+            const servidores = [
+
+                "https://overpass-api.de/api/interpreter",
+
+                "https://overpass.kumi.systems/api/interpreter",
+
+                "https://overpass.private.coffee/api/interpreter"
+
+            ];
+
+
+            let dados = null;
+
+
+            // Tenta cada servidor
+
+            for (const servidor of servidores) {
+
+                try {
+
+                    console.log(
+                        "Tentando:",
+                        servidor
+                    );
+
+
+                    const resposta =
+                        await fetch(
+
+                            servidor,
+
+                            {
+                                method: "POST",
+
+                                body: consulta
+                            }
+
+                        );
+
+
+                    if (!resposta.ok) {
+
+                        continue;
+
+                    }
+
+
+                    dados =
+                        await resposta.json();
+
+
+                    break;
+
+                }
+
+                catch (erro) {
+
+                    console.log(
+                        "Servidor falhou:",
+                        servidor
+                    );
+
+                }
+
+            }
+
+
+            // Nenhum servidor respondeu
+
+            if (!dados) {
+
+                mostrarStatus(
+                    "❌ Não foi possível carregar os pontos."
+                );
+
+                return;
+
+            }
+
+
+            // Apaga marcadores anteriores
+
+            marcadores.forEach(
 
                 function(marker) {
 
@@ -345,148 +440,125 @@
 
             );
 
-            pontosOnibus = [];
+            marcadores = [];
 
 
-            // Consulta OpenStreetMap
+            // ======================================
+            // CRIAR MARCADORES
+            // ======================================
 
-            const consulta = `
+            dados.elements.forEach(
 
-                [out:json];
+                function(ponto) {
 
-                (
+                    if (
+                        !ponto.lat ||
+                        !ponto.lon
+                    ) {
 
-                    node
-                    ["highway"="bus_stop"]
-                    (around:${RAIO},${latitude},${longitude});
-
-                    node
-                    ["public_transport"="platform"]
-                    ["bus"="yes"]
-                    (around:${RAIO},${latitude},${longitude});
-
-                );
-
-                out body;
-
-            `;
-
-
-            try {
-
-                const resposta = await fetch(
-
-                    "https://overpass-api.de/api/interpreter",
-
-                    {
-
-                        method: "POST",
-
-                        body: consulta
+                        return;
 
                     }
 
-                );
+
+                    const nome =
+                        ponto.tags?.name
+                        || "Ponto de ônibus";
 
 
-                const dados =
-                    await resposta.json();
+                    const ref =
+                        ponto.tags?.ref
+                        || "";
 
 
-                // Cria os marcadores
+                    const marker =
+                        L.circleMarker(
 
-                dados.elements.forEach(
+                            [
+                                ponto.lat,
+                                ponto.lon
+                            ],
 
-                    function(ponto) {
+                            {
+                                radius: 8,
 
-                        const lat =
-                            ponto.lat;
+                                color: "white",
 
-                        const lon =
-                            ponto.lon;
+                                weight: 2,
 
+                                fillColor: "#5271ff",
 
-                        const nome =
-                            ponto.tags?.name
-                            || "Ponto de ônibus";
+                                fillOpacity: 1
+                            }
 
-
-                        const marker =
-                            L.circleMarker(
-
-                                [lat, lon],
-
-                                {
-
-                                    radius: 7,
-
-                                    color: "#5271ff",
-
-                                    weight: 2,
-
-                                    fillColor: "#5271ff",
-
-                                    fillOpacity: 1
-
-                                }
-
-                            ).addTo(map);
+                        ).addTo(map);
 
 
-                        marker.bindPopup(`
+                    marker.bindPopup(`
 
-                            <div style="
-                                color: #111;
-                                min-width: 160px;
-                            ">
+                        <div style="
+                            min-width:180px;
+                            color:#111;
+                        ">
 
-                                <b>🚌 ${nome}</b>
+                            <h3>
+                                🚌 ${nome}
+                            </h3>
 
-                                <br><br>
+                            ${
+                                ref
+                                ?
+                                `<p>
+                                    <b>Referência:</b>
+                                    ${ref}
+                                </p>`
+                                :
+                                ""
+                            }
 
-                                <span>
-                                    Ponto de ônibus
-                                </span>
+                            <hr>
 
-                                <br><br>
+                            <p>
+                                📍 Ponto de ônibus
+                            </p>
 
-                                <b>
-                                    Raio de busca:
-                                </b>
+                            <p>
+                                ⏱️ Horários:
+                                <b>em breve</b>
+                            </p>
 
-                                2 km
+                        </div>
 
-                            </div>
-
-                        `);
-
-
-                        pontosOnibus.push(
-                            marker
-                        );
-
-                    }
-
-                );
+                    `);
 
 
-                console.log(
+                    marcadores.push(
+                        marker
+                    );
 
-                    dados.elements.length +
-                    " pontos encontrados."
+                }
 
+            );
+
+
+            // Resultado
+
+            const quantidade =
+                marcadores.length;
+
+
+            if (quantidade === 0) {
+
+                mostrarStatus(
+                    "⚠️ Nenhum ponto encontrado nos 2 km."
                 );
 
             }
 
-            catch (erro) {
+            else {
 
-                console.error(
-                    erro
-                );
-
-                alert(
-                    "Não foi possível carregar os pontos de ônibus."
+                mostrarStatus(
+                    `🚌 ${quantidade} pontos encontrados em 2 km`
                 );
 
             }
@@ -494,13 +566,9 @@
         }
 
 
-
         // ==========================================
-        // INICIALIZA
+        // POSIÇÃO INICIAL
         // ==========================================
-
-        // Centro inicial:
-        // Interlagos / Zona Sul de SP
 
         map.setView(
 
@@ -511,7 +579,9 @@
         );
 
 
-        // Tenta localizar automaticamente
+        // ==========================================
+        // INICIA
+        // ==========================================
 
         localizarUsuario();
 
