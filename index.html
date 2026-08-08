@@ -1,69 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Mapa - Zona Sul SP</title>
+    <title>BusSul - Zona Sul</title>
 
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
 
     <style>
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html, body {
-            width: 100%;
-            height: 100%;
+        body {
+            font-family: Arial, sans-serif;
         }
 
         #map {
             width: 100%;
             height: 100vh;
         }
+
+        /* Caixa superior */
+        .titulo {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: white;
+            padding: 12px 20px;
+
+            border-radius: 12px;
+
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+
+            z-index: 1000;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            color: #5271ff;
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<div id="map"></div>
+    <div class="titulo">
+        🚌 BusSul
+    </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div id="map"></div>
 
-<script>
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    // Limites aproximados da Zona Sul de São Paulo
-    const zonaSul = [
-        [-23.85, -46.85], // Sul / Oeste
-        [-23.45, -46.50]  // Norte / Leste
-    ];
+    <script>
 
-    // Cria o mapa
-    const map = L.map("map", {
-        maxBounds: zonaSul,
-        maxBoundsViscosity: 1.0,
-        minZoom: 11,
-        maxZoom: 18
-    });
+        // ====================================
+        // LIMITES DA ZONA SUL
+        // ====================================
 
-    // Mapa
-    L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            attribution: "&copy; OpenStreetMap contributors"
-        }
-    ).addTo(map);
+        const zonaSul = [
+            [-23.85, -46.85],
+            [-23.45, -46.50]
+        ];
 
-    // Enquadra a Zona Sul
-    map.fitBounds(zonaSul);
 
-</script>
+        // ====================================
+        // CRIAÇÃO DO MAPA
+        // ====================================
+
+        const map = L.map("map", {
+
+            maxBounds: zonaSul,
+
+            maxBoundsViscosity: 1.0,
+
+            minZoom: 11,
+
+            maxZoom: 18
+
+        });
+
+
+        // ====================================
+        // MAPA BASE
+        // ====================================
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+
+                attribution:
+                "&copy; OpenStreetMap contributors"
+
+            }
+        ).addTo(map);
+
+
+        // ====================================
+        // CENTRALIZA NA ZONA SUL
+        // ====================================
+
+        map.fitBounds(zonaSul);
+
+
+        // ====================================
+        // PONTO DE ÔNIBUS 1
+        // ====================================
+
+        L.marker([-23.6505, -46.7045])
+
+            .addTo(map)
+
+            .bindPopup(`
+            
+                <b>🚌 Ponto de ônibus</b>
+
+                <br><br>
+
+                Avenida exemplo
+
+                <br>
+
+                <b>Linha:</b> 675K-10
+
+                <br>
+
+                <b>Status:</b> Normal
+
+            `);
+
+
+        // ====================================
+        // PONTO DE ÔNIBUS 2
+        // ====================================
+
+        L.marker([-23.6740, -46.6950])
+
+            .addTo(map)
+
+            .bindPopup(`
+            
+                <b>🚌 Ponto de ônibus</b>
+
+                <br><br>
+
+                Estrada exemplo
+
+                <br>
+
+                <b>Linha:</b> 607C-10
+
+                <br>
+
+                <b>Status:</b> Atrasado
+
+            `);
+
+
+        // ====================================
+        // PONTO DE ÔNIBUS 3
+        // ====================================
+
+        L.marker([-23.7000, -46.7000])
+
+            .addTo(map)
+
+            .bindPopup(`
+            
+                <b>🚌 Ponto de ônibus</b>
+
+                <br><br>
+
+                Interlagos
+
+                <br>
+
+                <b>Linha:</b> 6000-10
+
+                <br>
+
+                <b>Status:</b> Normal
+
+            `);
+
+
+    </script>
 
 </body>
+
 </html>
