@@ -21,1146 +21,1130 @@
         }
 
         html,
-        body,
-        #map {
+        body {
             width: 100%;
             height: 100%;
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: white;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #000;
+            overflow: hidden;
         }
+
+        /* =========================
+           MAPA
+        ========================= */
 
         #map {
-            background: #111;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 1;
         }
 
+
+        /* =========================
+           LOGO
+        ========================= */
+
         .logo {
+
             position: absolute;
+
             top: 15px;
             left: 50%;
+
             transform: translateX(-50%);
 
             z-index: 1000;
 
             background: #080808;
+
             color: #5271ff;
 
             padding: 12px 22px;
+
             border-radius: 15px;
 
             font-size: 21px;
             font-weight: bold;
 
             border: 1px solid #222;
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,.6);
         }
 
+
+        /* =========================
+           BOTÃO LOCALIZAÇÃO
+        ========================= */
+
         .localizar {
+
             position: absolute;
+
             right: 20px;
-            bottom: 25px;
+            bottom: 330px;
 
             z-index: 1000;
 
-            width: 55px;
-            height: 55px;
+            width: 52px;
+            height: 52px;
 
             border: none;
+
             border-radius: 50%;
 
             background: #5271ff;
+
             color: white;
 
-            font-size: 22px;
+            font-size: 21px;
+
             cursor: pointer;
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,.6);
         }
 
+
+        /* =========================
+           PAINEL INFERIOR
+        ========================= */
+
         .painel {
+
             position: absolute;
 
-            left: 50%;
-            bottom: 20px;
+            left: 0;
+            bottom: 0;
 
-            transform: translateX(-50%);
-
-            width: 92%;
-            max-width: 430px;
-
-            background: #111;
-            color: white;
-
-            border-radius: 18px;
-
-            padding: 20px;
+            width: 100%;
 
             z-index: 2000;
 
-            box-shadow: 0 5px 25px rgba(0,0,0,.8);
+            background: #0b0b0b;
 
-            display: none;
+            border-radius: 25px 25px 0 0;
 
-            max-height: 75vh;
+            padding: 22px 18px 25px;
+
+            box-shadow:
+                0 -5px 25px rgba(0,0,0,.65);
+
+            max-height: 48vh;
+
             overflow-y: auto;
         }
 
-        .painel h2 {
-            color: #5271ff;
-            margin-bottom: 10px;
-        }
 
-        .fechar {
-            position: absolute;
+        /* =========================
+           BUSCA
+        ========================= */
 
-            right: 15px;
-            top: 10px;
+        .titulo {
 
-            border: none;
-            background: none;
+            font-size: 19px;
 
-            color: white;
-
-            font-size: 25px;
-
-            cursor: pointer;
-        }
-
-        .linha {
-            background: #1c1c1c;
-
-            border: 1px solid #292929;
-
-            border-radius: 12px;
-
-            padding: 14px;
-
-            margin-top: 10px;
-
-            cursor: pointer;
-        }
-
-        .linha:hover {
-            background: #252525;
-        }
-
-        .tempo {
-            color: #55d66b;
             font-weight: bold;
+
+            margin-bottom: 15px;
         }
 
-        .carregando {
-            text-align: center;
-            padding: 20px;
+
+        .destinos {
+
+            display: flex;
+
+            gap: 10px;
+
+            overflow-x: auto;
+
+            margin-bottom: 22px;
         }
 
-        .erro {
-            color: #ff7070;
-            margin-top: 10px;
-        }
 
-        .botao {
-            width: 100%;
+        .destino {
 
-            margin-top: 15px;
+            min-width: 95px;
 
             padding: 12px;
 
-            border: none;
-            border-radius: 10px;
+            background: #171717;
+
+            border: 1px solid #292929;
+
+            border-radius: 13px;
+
+            color: white;
+
+            cursor: pointer;
+
+            text-align: center;
+
+            font-size: 14px;
+        }
+
+
+        .destino:hover {
 
             background: #5271ff;
+
+            border-color: #5271ff;
+        }
+
+
+        /* =========================
+           LINHAS PRÓXIMAS
+        ========================= */
+
+        .subtitulo {
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            margin-bottom: 10px;
+        }
+
+
+        .linha-card {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 14px;
+
+            margin-bottom: 9px;
+
+            background: #151515;
+
+            border: 1px solid #282828;
+
+            border-radius: 13px;
+
+            cursor: pointer;
+
+            transition: .15s;
+        }
+
+
+        .linha-card:hover {
+
+            background: #202020;
+
+            transform: translateY(-1px);
+        }
+
+
+        .linha-esquerda {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        .status {
+
+            width: 11px;
+            height: 11px;
+
+            border-radius: 50%;
+        }
+
+
+        .verde {
+            background: #35d05b;
+        }
+
+
+        .amarelo {
+            background: #f4c542;
+        }
+
+
+        .vermelho {
+            background: #e84b4b;
+        }
+
+
+        .codigo {
+
+            font-size: 16px;
+
+            font-weight: bold;
+        }
+
+
+        .tempo {
+
+            font-weight: bold;
+
+            color: #55d66b;
+        }
+
+
+        /* =========================
+           TELA DA LINHA
+        ========================= */
+
+        .detalhes {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 3000;
+
+            background: #090909;
+
+            padding: 25px;
+
+            display: none;
+
+            overflow-y: auto;
+        }
+
+
+        .voltar {
+
+            border: none;
+
+            background: #181818;
+
+            color: white;
+
+            border-radius: 10px;
+
+            padding: 10px 15px;
+
+            cursor: pointer;
+
+            margin-bottom: 25px;
+        }
+
+
+        .linha-titulo {
+
+            font-size: 30px;
+
+            color: #5271ff;
+
+            margin-bottom: 8px;
+        }
+
+
+        .operacao {
+
+            display: inline-block;
+
+            padding: 7px 12px;
+
+            border-radius: 20px;
+
+            background: #12351b;
+
+            color: #55d66b;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =========================
+           INFORMAÇÕES
+        ========================= */
+
+        .info-box {
+
+            background: #151515;
+
+            border: 1px solid #292929;
+
+            border-radius: 15px;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .info-label {
+
+            color: #999;
+
+            font-size: 13px;
+
+            margin-bottom: 7px;
+        }
+
+
+        .info-value {
+
+            font-size: 22px;
+
+            font-weight: bold;
+        }
+
+
+        .confiabilidade {
+
+            color: #55d66b;
+        }
+
+
+        .lotacao {
+
+            color: #f4c542;
+        }
+
+
+        /* =========================
+           BOTÕES
+        ========================= */
+
+        .acao {
+
+            width: 100%;
+
+            padding: 15px;
+
+            margin-top: 10px;
+
+            border: none;
+
+            border-radius: 12px;
+
+            background: #5271ff;
+
             color: white;
 
             font-size: 16px;
+
             font-weight: bold;
 
             cursor: pointer;
         }
 
-        .opcao {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
 
-        .opcao button {
-            flex: 1;
-
-            padding: 10px;
-
-            border: 1px solid #333;
-            border-radius: 9px;
+        .acao-secundaria {
 
             background: #1b1b1b;
-            color: white;
 
-            cursor: pointer;
+            border: 1px solid #333;
         }
 
-        .opcao button:hover {
+
+        .acao:hover {
+
+            opacity: .9;
+        }
+
+
+        /* =========================
+           MARCADORES DO MAPA
+        ========================= */
+
+        .icone-onibus {
+
             background: #5271ff;
+
+            width: 32px;
+            height: 32px;
+
+            border-radius: 50%;
+
+            border: 3px solid white;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            font-size: 15px;
         }
 
     </style>
 
 </head>
 
+
 <body>
 
-    <div class="logo">
-        🚌 BusReview
+
+<!-- =========================
+     MAPA
+========================= -->
+
+<div id="map"></div>
+
+
+<!-- =========================
+     LOGO
+========================= -->
+
+<div class="logo">
+    🚌 BusReview
+</div>
+
+
+<!-- =========================
+     BOTÃO GPS
+========================= -->
+
+<button
+    class="localizar"
+    onclick="localizarUsuario()">
+
+    📍
+
+</button>
+
+
+<!-- =========================
+     PAINEL
+========================= -->
+
+<div class="painel">
+
+
+    <div class="titulo">
+        Para onde você quer ir?
     </div>
 
-    <button
-        class="localizar"
-        onclick="localizarUsuario()">
 
-        📍
-
-    </button>
-
-    <div id="map"></div>
-
-    <div
-        id="painel"
-        class="painel">
+    <div class="destinos">
 
         <button
-            class="fechar"
-            onclick="fecharPainel()">
+            class="destino"
+            onclick="selecionarDestino('Casa')">
 
-            ×
+            🏠<br>
+            Casa
 
         </button>
 
-        <div id="conteudo"></div>
+
+        <button
+            class="destino"
+            onclick="selecionarDestino('CEAP')">
+
+            🏫<br>
+            CEAP
+
+        </button>
+
+
+        <button
+            class="destino"
+            onclick="selecionarDestino('Outro')">
+
+            ➕<br>
+            Outro
+
+        </button>
 
     </div>
 
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div class="subtitulo">
+        Linhas próximas
+    </div>
 
 
-    <script>
+    <!-- LINHA 675A -->
 
-        // ==========================================
-        // MAPA
-        // ==========================================
+    <div
+        class="linha-card"
+        onclick="abrirLinha('675A')"
+    >
 
-        const map = L.map("map");
+        <div class="linha-esquerda">
 
-        L.tileLayer(
-            "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-            {
-                attribution:
-                    '&copy; OpenStreetMap &copy; CARTO',
+            <div class="status verde"></div>
 
-                subdomains: "abcd",
+            <div class="codigo">
+                675A
+            </div>
 
-                maxZoom: 20
-            }
-        ).addTo(map);
+        </div>
 
+        <div class="tempo">
+            6 min
+        </div>
 
-        map.setView(
-            [-23.7000, -46.7000],
-            13
-        );
+    </div>
 
 
-        // ==========================================
-        // VARIÁVEIS
-        // ==========================================
+    <!-- LINHA 6021 -->
 
-        let marcadorUsuario = null;
+    <div
+        class="linha-card"
+        onclick="abrirLinha('6021')"
+    >
 
-        let circulo = null;
+        <div class="linha-esquerda">
 
-        let paradas = [];
+            <div class="status amarelo"></div>
 
-        let localizacaoAtual = null;
+            <div class="codigo">
+                6021
+            </div>
 
+        </div>
 
-        // ==========================================
-        // LOCALIZAÇÃO
-        // ==========================================
+        <div class="tempo">
+            11 min
+        </div>
 
-        function localizarUsuario() {
-
-            if (!navigator.geolocation) {
-
-                alert(
-                    "Seu navegador não suporta localização."
-                );
-
-                return;
-            }
+    </div>
 
 
-            navigator.geolocation.watchPosition(
+    <!-- LINHA 637V -->
 
-                function(position) {
+    <div
+        class="linha-card"
+        onclick="abrirLinha('637V')"
+    >
 
-                    const lat =
-                        position.coords.latitude;
+        <div class="linha-esquerda">
 
-                    const lon =
-                        position.coords.longitude;
+            <div class="status vermelho"></div>
 
+            <div class="codigo">
+                637V
+            </div>
 
-                    localizacaoAtual = {
-                        lat,
-                        lon
-                    };
+        </div>
 
+        <div class="tempo">
+            18 min
+        </div>
 
-                    mostrarUsuario(
-                        lat,
-                        lon
-                    );
+    </div>
 
-                },
-
-
-                function(error) {
-
-                    console.log(
-                        "Erro GPS:",
-                        error
-                    );
-
-                    alert(
-                        "Permita o acesso à localização no navegador."
-                    );
-
-                },
+</div>
 
 
-                {
-                    enableHighAccuracy: true,
+<!-- =========================
+     DETALHES DA LINHA
+========================= -->
 
-                    maximumAge: 5000,
+<div
+    id="detalhes"
+    class="detalhes"
+>
 
-                    timeout: 15000
-                }
 
-            );
+    <button
+        class="voltar"
+        onclick="fecharLinha()">
+
+        ← Voltar
+
+    </button>
+
+
+    <h1
+        id="linhaTitulo"
+        class="linha-titulo">
+
+        675A
+
+    </h1>
+
+
+    <div
+        id="linhaOperacao"
+        class="operacao">
+
+        🟢 Operação normal
+
+    </div>
+
+
+    <!-- PRÓXIMO ÔNIBUS -->
+
+    <div class="info-box">
+
+        <div class="info-label">
+            Próximo ônibus
+        </div>
+
+        <div
+            id="proximo"
+            class="info-value">
+
+            6 min
+
+        </div>
+
+    </div>
+
+
+    <!-- CONFIABILIDADE -->
+
+    <div class="info-box">
+
+        <div class="info-label">
+            Confiabilidade
+        </div>
+
+        <div
+            id="confiabilidade"
+            class="info-value confiabilidade">
+
+            96%
+
+        </div>
+
+    </div>
+
+
+    <!-- LOTAÇÃO -->
+
+    <div class="info-box">
+
+        <div class="info-label">
+            Lotação
+        </div>
+
+        <div
+            id="lotacao"
+            class="info-value lotacao">
+
+            🟡 Cheio
+
+        </div>
+
+    </div>
+
+
+    <!-- HORÁRIO DE PICO -->
+
+    <div class="info-box">
+
+        <div class="info-label">
+            Horário de pico
+        </div>
+
+        <div
+            id="pico"
+            class="info-value">
+
+            06:40 – 08:10
+
+        </div>
+
+    </div>
+
+
+    <!-- ACOMPANHAR -->
+
+    <button
+        class="acao"
+        onclick="acompanharLinha()">
+
+        📍 Acompanhar ônibus
+
+    </button>
+
+
+    <!-- AVALIAÇÃO -->
+
+    <button
+        class="acao acao-secundaria"
+        onclick="avaliarLinha()">
+
+        ⭐ Como está a linha?
+
+    </button>
+
+
+</div>
+
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script>
+
+
+    // ==========================================
+    // MAPA
+    // ==========================================
+
+    const map =
+        L.map("map");
+
+
+    L.tileLayer(
+
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+
+        {
+
+            attribution:
+                '&copy; OpenStreetMap &copy; CARTO',
+
+            subdomains: "abcd",
+
+            maxZoom: 20
 
         }
 
-
-        // ==========================================
-        // MOSTRAR USUÁRIO
-        // ==========================================
-
-        function mostrarUsuario(
-            lat,
-            lon
-        ) {
-
-            if (marcadorUsuario) {
-
-                map.removeLayer(
-                    marcadorUsuario
-                );
-
-            }
+    ).addTo(map);
 
 
-            if (circulo) {
+    // Posição inicial
 
-                map.removeLayer(
-                    circulo
-                );
+    map.setView(
 
-            }
+        [-23.7000, -46.7000],
 
+        13
 
-            marcadorUsuario =
-                L.circleMarker(
-
-                    [lat, lon],
-
-                    {
-                        radius: 9,
-
-                        color: "white",
-
-                        weight: 3,
-
-                        fillColor: "#5271ff",
-
-                        fillOpacity: 1
-                    }
-
-                ).addTo(map);
+    );
 
 
-            marcadorUsuario.bindPopup(
-                "<b>📍 Você está aqui</b>"
-            );
+    // ==========================================
+    // DADOS DAS LINHAS
+    // ==========================================
 
+    const linhas = {
 
-            circulo =
-                L.circle(
+        "675A": {
 
-                    [lat, lon],
+            tempo: "6 min",
 
-                    {
-                        radius: 2000,
+            confiabilidade: "96%",
 
-                        color: "#5271ff",
+            lotacao: "🟡 Cheio",
 
-                        weight: 2,
+            pico: "06:40 – 08:10",
 
-                        fillColor: "#5271ff",
+            status: "🟢 Operação normal"
 
-                        fillOpacity: 0.08
-                    }
+        },
 
-                ).addTo(map);
+        "6021": {
 
+            tempo: "11 min",
 
-            map.setView(
-                [lat, lon],
-                14
-            );
+            confiabilidade: "88%",
 
+            lotacao: "🟢 Normal",
 
-            carregarParadas(
-                lat,
-                lon
-            );
+            pico: "06:30 – 08:00",
+
+            status: "🟡 Operação com atenção"
+
+        },
+
+        "637V": {
+
+            tempo: "18 min",
+
+            confiabilidade: "71%",
+
+            lotacao: "🔴 Muito cheio",
+
+            pico: "06:20 – 08:20",
+
+            status: "🔴 Possíveis atrasos"
 
         }
 
+    };
 
-        // ==========================================
-        // BUSCAR PARADAS NO BACKEND
-        // ==========================================
 
-        async function carregarParadas(
-            lat,
-            lon
-        ) {
+    // ==========================================
+    // LOCALIZAÇÃO
+    // ==========================================
 
-            try {
+    let marcadorUsuario = null;
 
-                const resposta =
-                    await fetch(
-                        `/api/paradas?lat=${lat}&lon=${lon}`
-                    );
+    let circulo = null;
 
 
-                if (!resposta.ok) {
+    function localizarUsuario() {
 
-                    throw new Error(
-                        "Erro ao buscar paradas"
-                    );
 
-                }
-
-
-                const dados =
-                    await resposta.json();
-
-
-                mostrarParadas(
-                    dados
-                );
-
-
-            }
-            catch (erro) {
-
-                console.error(
-                    erro
-                );
-
-            }
-
-        }
-
-
-        // ==========================================
-        // MOSTRAR PARADAS
-        // ==========================================
-
-        function mostrarParadas(
-            dados
-        ) {
-
-            paradas.forEach(
-                marker =>
-                    map.removeLayer(marker)
-            );
-
-
-            paradas = [];
-
-
-            dados.forEach(
-                parada => {
-
-                    const marker =
-                        L.circleMarker(
-
-                            [
-                                parada.py,
-                                parada.px
-                            ],
-
-                            {
-                                radius: 8,
-
-                                color: "white",
-
-                                weight: 2,
-
-                                fillColor: "#5271ff",
-
-                                fillOpacity: 1
-                            }
-
-                        ).addTo(map);
-
-
-                    marker.on(
-                        "click",
-                        function() {
-
-                            abrirParada(
-                                parada
-                            );
-
-                        }
-                    );
-
-
-                    paradas.push(
-                        marker
-                    );
-
-                }
-            );
-
-        }
-
-
-        // ==========================================
-        // ABRIR PARADA
-        // ==========================================
-
-        async function abrirParada(
-            parada
-        ) {
-
-            const painel =
-                document.getElementById(
-                    "painel"
-                );
-
-
-            const conteudo =
-                document.getElementById(
-                    "conteudo"
-                );
-
-
-            painel.style.display =
-                "block";
-
-
-            conteudo.innerHTML = `
-
-                <h2>
-                    🚌 ${escapeHtml(parada.np)}
-                </h2>
-
-                <p>
-                    ${escapeHtml(
-                        parada.ed || ""
-                    )}
-                </p>
-
-                <div class="carregando">
-
-                    ⏱️ Buscando
-                    ônibus chegando...
-
-                </div>
-
-            `;
-
-
-            try {
-
-                const resposta =
-                    await fetch(
-                        `/api/previsao/${parada.cp}`
-                    );
-
-
-                const dados =
-                    await resposta.json();
-
-
-                if (!resposta.ok) {
-
-                    throw new Error(
-                        dados.error ||
-                        "Erro na SPTrans"
-                    );
-
-                }
-
-
-                mostrarPrevisoes(
-                    dados
-                );
-
-
-            }
-            catch (erro) {
-
-                console.error(
-                    erro
-                );
-
-
-                conteudo.innerHTML += `
-
-                    <p class="erro">
-
-                        Não foi possível obter
-                        a previsão desta parada.
-
-                    </p>
-
-                `;
-
-            }
-
-        }
-
-
-        // ==========================================
-        // MOSTRAR PREVISÕES
-        // ==========================================
-
-        function mostrarPrevisoes(
-            dados
-        ) {
-
-            const conteudo =
-                document.getElementById(
-                    "conteudo"
-                );
-
-
-            if (
-                !dados ||
-                !dados.p ||
-                !dados.p.l ||
-                dados.p.l.length === 0
-            ) {
-
-                conteudo.innerHTML += `
-
-                    <p>
-                        Nenhum ônibus foi localizado
-                        para previsão neste momento.
-                    </p>
-
-                `;
-
-                return;
-
-            }
-
-
-            let html = `
-
-                <h2>
-                    🚌 ${escapeHtml(
-                        dados.p.np
-                    )}
-                </h2>
-
-                <p>
-                    Atualizado às
-                    ${escapeHtml(
-                        dados.hr || "--:--"
-                    )}
-                </p>
-
-            `;
-
-
-            dados.p.l.forEach(
-                linha => {
-
-                    html += `
-
-                        <div
-                            class="linha"
-                            onclick="
-                                abrirLinha(
-                                    '${escapeAttr(linha.c)}',
-                                    '${escapeAttr(linha.lt0)}',
-                                    ${linha.cl}
-                                )
-                            "
-                        >
-
-                            <b>
-                                ${escapeHtml(
-                                    linha.c
-                                )}
-                            </b>
-
-                            <br>
-
-                            → ${escapeHtml(
-                                linha.lt0
-                            )}
-
-                            <br><br>
-
-                    `;
-
-
-                    if (
-                        linha.vs &&
-                        linha.vs.length > 0
-                    ) {
-
-                        linha.vs
-                            .slice(0, 3)
-                            .forEach(
-                                veiculo => {
-
-                                    html += `
-
-                                        <span class="tempo">
-
-                                            🟢
-                                            ${tempoAte(
-                                                veiculo.t
-                                            )}
-
-                                        </span>
-
-                                        <br>
-
-                                    `;
-
-                                }
-                            );
-
-                    }
-                    else {
-
-                        html += `
-
-                            <span>
-                                Sem previsão disponível
-                            </span>
-
-                        `;
-
-                    }
-
-
-                    html += `
-
-                        </div>
-
-                    `;
-
-                }
-            );
-
-
-            conteudo.innerHTML =
-                html;
-
-        }
-
-
-        // ==========================================
-        // CONVERTER HORÁRIO EM MINUTOS
-        // ==========================================
-
-        function tempoAte(
-            horario
-        ) {
-
-            if (!horario) {
-
-                return "horário indisponível";
-
-            }
-
-
-            const agora =
-                new Date();
-
-
-            const partes =
-                horario.split(":");
-
-
-            const chegada =
-                new Date();
-
-
-            chegada.setHours(
-                Number(partes[0]),
-                Number(partes[1]),
-                0,
-                0
-            );
-
-
-            let diferenca =
-                Math.round(
-                    (
-                        chegada - agora
-                    ) / 60000
-                );
-
-
-            if (diferenca < 0) {
-
-                diferenca = 0;
-
-            }
-
-
-            if (diferenca === 0) {
-
-                return "chegando agora";
-
-            }
-
-
-            return `chega em ${diferenca} min`;
-
-        }
-
-
-        // ==========================================
-        // ABRIR LINHA
-        // ==========================================
-
-        function abrirLinha(
-            codigo,
-            destino,
-            codigoLinha
-        ) {
-
-            const conteudo =
-                document.getElementById(
-                    "conteudo"
-                );
-
-
-            conteudo.innerHTML = `
-
-                <h2>
-                    🚌 ${escapeHtml(codigo)}
-                </h2>
-
-                <p>
-
-                    <b>
-                        Destino:
-                    </b>
-
-                    ${escapeHtml(destino)}
-
-                </p>
-
-                <p
-                    style="margin-top:10px"
-                >
-
-                    Código SPTrans:
-                    ${codigoLinha}
-
-                </p>
-
-                <p
-                    style="margin-top:10px"
-                >
-
-                    🟢 Dados obtidos
-                    da SPTrans Olho Vivo
-
-                </p>
-
-                <button
-                    class="botao"
-                    onclick="
-                        abrirAvaliacao(
-                            '${escapeAttr(codigo)}'
-                        )
-                    "
-                >
-
-                    ⭐ Avaliar viagem
-
-                </button>
-
-            `;
-
-        }
-
-
-        // ==========================================
-        // AVALIAÇÃO
-        // ==========================================
-
-        let avaliacao = {};
-
-
-        function abrirAvaliacao(
-            codigo
-        ) {
-
-            const conteudo =
-                document.getElementById(
-                    "conteudo"
-                );
-
-
-            conteudo.innerHTML = `
-
-                <h2>
-                    ⭐ Avaliar ${escapeHtml(codigo)}
-                </h2>
-
-                <p>
-                    Como estava o ônibus?
-                </p>
-
-                <div class="opcao">
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'lotacao',
-                                'Normal'
-                            )
-                        "
-                    >
-                        🟢 Normal
-                    </button>
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'lotacao',
-                                'Cheio'
-                            )
-                        "
-                    >
-                        🟡 Cheio
-                    </button>
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'lotacao',
-                                'Muito cheio'
-                            )
-                        "
-                    >
-                        🔴 Muito cheio
-                    </button>
-
-                </div>
-
-
-                <br>
-
-
-                <p>
-                    Você conseguiu embarcar?
-                </p>
-
-
-                <div class="opcao">
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'embarque',
-                                'Sim'
-                            )
-                        "
-                    >
-                        Sim
-                    </button>
-
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'embarque',
-                                'Não'
-                            )
-                        "
-                    >
-                        Não
-                    </button>
-
-                </div>
-
-
-                <br>
-
-
-                <p>
-                    Houve atraso?
-                </p>
-
-
-                <div class="opcao">
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'atraso',
-                                'Não'
-                            )
-                        "
-                    >
-                        Não
-                    </button>
-
-
-                    <button
-                        onclick="
-                            selecionar(
-                                'atraso',
-                                'Sim'
-                            )
-                        "
-                    >
-                        Sim
-                    </button>
-
-                </div>
-
-
-                <button
-                    class="botao"
-                    onclick="
-                        enviarAvaliacao()
-                    "
-                >
-
-                    Enviar avaliação
-
-                </button>
-
-            `;
-
-        }
-
-
-        function selecionar(
-            tipo,
-            valor
-        ) {
-
-            avaliacao[tipo] =
-                valor;
-
-        }
-
-
-        function enviarAvaliacao() {
-
-            if (
-                !avaliacao.lotacao ||
-                !avaliacao.embarque ||
-                !avaliacao.atraso
-            ) {
-
-                alert(
-                    "Responda todas as perguntas."
-                );
-
-                return;
-
-            }
-
+        if (!navigator.geolocation) {
 
             alert(
-                "Avaliação enviada!"
+                "Seu navegador não suporta localização."
             );
 
-
-            avaliacao = {};
-
-            fecharPainel();
+            return;
 
         }
 
 
-        // ==========================================
-        // FECHAR
-        // ==========================================
+        navigator.geolocation.watchPosition(
 
-        function fecharPainel() {
+            function(position) {
 
-            document.getElementById(
-                "painel"
-            ).style.display =
-                "none";
+
+                const lat =
+                    position.coords.latitude;
+
+
+                const lon =
+                    position.coords.longitude;
+
+
+                // Remove marcador anterior
+
+                if (marcadorUsuario) {
+
+                    map.removeLayer(
+                        marcadorUsuario
+                    );
+
+                }
+
+
+                // Remove círculo anterior
+
+                if (circulo) {
+
+                    map.removeLayer(
+                        circulo
+                    );
+
+                }
+
+
+                // Cria marcador
+
+                marcadorUsuario =
+                    L.circleMarker(
+
+                        [lat, lon],
+
+                        {
+
+                            radius: 9,
+
+                            color: "white",
+
+                            weight: 3,
+
+                            fillColor: "#5271ff",
+
+                            fillOpacity: 1
+
+                        }
+
+                    ).addTo(map);
+
+
+                marcadorUsuario.bindPopup(
+                    "<b>📍 Você está aqui</b>"
+                );
+
+
+                // Raio de 2 km
+
+                circulo =
+                    L.circle(
+
+                        [lat, lon],
+
+                        {
+
+                            radius: 2000,
+
+                            color: "#5271ff",
+
+                            fillColor: "#5271ff",
+
+                            fillOpacity: 0.06
+
+                        }
+
+                    ).addTo(map);
+
+
+                map.setView(
+
+                    [lat, lon],
+
+                    14
+
+                );
+
+            },
+
+
+            function(error) {
+
+                console.log(
+                    "Erro GPS:",
+                    error
+                );
+
+            },
+
+
+            {
+
+                enableHighAccuracy: true,
+
+                maximumAge: 5000,
+
+                timeout: 15000
+
+            }
+
+        );
+
+    }
+
+
+    // ==========================================
+    // SELECIONAR DESTINO
+    // ==========================================
+
+    function selecionarDestino(
+        destino
+    ) {
+
+        alert(
+            "Destino selecionado: " +
+            destino
+        );
+
+    }
+
+
+    // ==========================================
+    // ABRIR LINHA
+    // ==========================================
+
+    function abrirLinha(
+        codigo
+    ) {
+
+
+        const dados =
+            linhas[codigo];
+
+
+        if (!dados) {
+
+            return;
 
         }
 
 
-        // ==========================================
-        // SEGURANÇA
-        // ==========================================
-
-        function escapeHtml(
-            texto
-        ) {
-
-            return String(texto || "")
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#039;");
-
-        }
+        document.getElementById(
+            "linhaTitulo"
+        ).innerText =
+            codigo;
 
 
-        function escapeAttr(
-            texto
-        ) {
-
-            return String(texto || "")
-                .replaceAll("\\", "\\\\")
-                .replaceAll("'", "\\'");
-
-        }
+        document.getElementById(
+            "linhaOperacao"
+        ).innerText =
+            dados.status;
 
 
-        // ==========================================
-        // INICIAR
-        // ==========================================
+        document.getElementById(
+            "proximo"
+        ).innerText =
+            dados.tempo;
 
-        localizarUsuario();
 
-    </script>
+        document.getElementById(
+            "confiabilidade"
+        ).innerText =
+            dados.confiabilidade;
+
+
+        document.getElementById(
+            "lotacao"
+        ).innerText =
+            dados.lotacao;
+
+
+        document.getElementById(
+            "pico"
+        ).innerText =
+            dados.pico;
+
+
+        document.getElementById(
+            "detalhes"
+        ).style.display =
+            "block";
+
+    }
+
+
+    // ==========================================
+    // FECHAR LINHA
+    // ==========================================
+
+    function fecharLinha() {
+
+        document.getElementById(
+            "detalhes"
+        ).style.display =
+            "none";
+
+    }
+
+
+    // ==========================================
+    // ACOMPANHAR ÔNIBUS
+    // ==========================================
+
+    function acompanharLinha() {
+
+        alert(
+            "Acompanhamento ativado!"
+        );
+
+    }
+
+
+    // ==========================================
+    // AVALIAR LINHA
+    // ==========================================
+
+    function avaliarLinha() {
+
+        alert(
+            "Aqui entrará o sistema de avaliação da linha."
+        );
+
+    }
+
+
+    // ==========================================
+    // INICIAR GPS
+    // ==========================================
+
+    localizarUsuario();
+
+
+</script>
 
 </body>
 
