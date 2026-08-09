@@ -1,251 +1,161 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>BusReview</title>
 
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <link rel="stylesheet" href="style.css">
+    <!-- Nosso CSS -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
-<header>
-    <div class="logo">🚌 BusReview</div>
-</header>
 
-<main>
+    <!-- MAPA -->
 
-    <!-- HOME -->
+    <div id="map"></div>
 
-    <section id="home">
 
-        <section class="hero">
+    <!-- LOGO -->
 
-            <h1>Para onde você quer ir?</h1>
+    <div class="logo">
 
-            <p>
-                Escolha um destino para encontrar
-                as melhores opções de ônibus.
-            </p>
+        <div class="logo-icon">
+            🚌
+        </div>
 
-            <div class="destinos">
+        <div>
+            BusReview
+        </div>
 
-                <button onclick="buscarDestino('Casa')">
-                    🏠
-                    <span>Casa</span>
-                </button>
+    </div>
 
-                <button onclick="buscarDestino('Escola')">
-                    🏫
-                    <span>Escola</span>
-                </button>
 
-                <button onclick="buscarDestino('Trabalho')">
-                    💼
-                    <span>Trabalho</span>
-                </button>
+    <!-- INFORMAÇÃO SOBRE O RAIO -->
 
-                <button onclick="buscarDestino('Outro')">
-                    ➕
-                    <span>Outro</span>
-                </button>
+    <div class="radius-info">
+
+        <span class="location-dot"></span>
+
+        Pontos em até 2 km
+
+    </div>
+
+
+    <!-- BOTÃO DE LOCALIZAÇÃO -->
+
+    <button
+        id="locationButton"
+        class="location-button"
+        onclick="centralizarUsuario()"
+    >
+
+        📍
+
+    </button>
+
+
+    <!-- PAINEL DO PONTO -->
+
+    <section
+        id="busPanel"
+        class="bus-panel"
+    >
+
+        <div class="panel-handle"></div>
+
+
+        <button
+            class="close-button"
+            onclick="fecharPainel()"
+        >
+
+            ×
+
+        </button>
+
+
+        <div class="panel-header">
+
+            <div>
+
+                <div
+                    id="selectedStopName"
+                    class="stop-name"
+                >
+                    Ponto de ônibus
+                </div>
+
+                <div
+                    id="selectedStopDistance"
+                    class="stop-distance"
+                >
+                    Selecione um ponto no mapa
+                </div>
 
             </div>
 
-        </section>
+        </div>
 
 
-        <!-- MAPA -->
+        <div class="arrivals-title">
 
-        <section class="map-container">
+            Próximos ônibus
 
-            <div id="map"></div>
+        </div>
 
-        </section>
-
-
-        <!-- LINHAS -->
-
-        <section class="linhas">
-
-            <h2>Linhas próximas</h2>
-
-            <div id="listaLinhas"></div>
-
-        </section>
-
-    </section>
-
-
-    <!-- ROTAS -->
-
-    <section
-        id="rotas"
-        class="tela"
-    >
-
-        <button
-            class="voltar"
-            onclick="voltarHome()"
-        >
-            ← Voltar
-        </button>
-
-        <h1 id="tituloDestino">
-            Rotas
-        </h1>
-
-        <p class="subtitulo">
-            Melhores opções encontradas
-        </p>
-
-        <div id="listaRotas"></div>
-
-    </section>
-
-
-    <!-- DETALHES DA LINHA -->
-
-    <section
-        id="detalhes"
-        class="tela"
-    >
-
-        <button
-            class="voltar"
-            onclick="voltarRotas()"
-        >
-            ← Voltar
-        </button>
-
-        <h1 id="linhaNome">
-            Linha
-        </h1>
 
         <div
-            id="linhaStatus"
-            class="status"
+            id="arrivals"
+            class="arrivals"
         >
-        </div>
 
-
-        <div class="informacoes">
-
-            <div class="info">
-
-                <small>
-                    Próximo ônibus
-                </small>
-
-                <strong id="tempo">
-                    -
-                </strong>
-
-            </div>
-
-
-            <div class="info">
-
-                <small>
-                    Confiabilidade
-                </small>
-
-                <strong id="confiabilidade">
-                    -
-                </strong>
-
-            </div>
-
-
-            <div class="info">
-
-                <small>
-                    Lotação
-                </small>
-
-                <strong id="lotacao">
-                    -
-                </strong>
-
-            </div>
-
-
-            <div class="info">
-
-                <small>
-                    Tempo de viagem
-                </small>
-
-                <strong id="duracao">
-                    -
-                </strong>
-
-            </div>
+            <!-- preenchido pelo JavaScript -->
 
         </div>
 
 
-        <div class="pico">
+        <div class="simulation-warning">
 
-            <small>
-                Horário de maior movimento
-            </small>
-
-            <strong>
-                06:40 – 08:10
-            </strong>
-
-        </div>
-
-
-        <!-- AVALIAÇÃO -->
-
-        <div class="avaliacao">
-
-            <h3>
-                Como foi sua viagem?
-            </h3>
-
-            <p>
-                Avalie a experiência para ajudar
-                outros passageiros.
-            </p>
-
-            <div class="estrelas">
-
-                <button onclick="avaliar(1)">★</button>
-
-                <button onclick="avaliar(2)">★</button>
-
-                <button onclick="avaliar(3)">★</button>
-
-                <button onclick="avaliar(4)">★</button>
-
-                <button onclick="avaliar(5)">★</button>
-
-            </div>
-
-            <p id="mensagemAvaliacao"></p>
+            Os horários mostrados nesta versão
+            são simulados.
 
         </div>
 
     </section>
 
-</main>
+
+    <!-- LEAFLET -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
 
 
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+    <!-- NOSSO JAVASCRIPT -->
 
-<script src="app.js"></script>
+    <script src="app.js"></script>
+
 
 </body>
+
 </html>
