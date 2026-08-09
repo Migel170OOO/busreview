@@ -1,590 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>BusReview</title>
+    <title>BusReview</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-    }
-
-    header {
-      height: 65px;
-      background: #5271ff;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      font-size: 22px;
-      font-weight: bold;
-      position: relative;
-      z-index: 1000;
-    }
-
-    #map {
-      height: 45vh;
-      width: 100%;
-    }
-
-    .content {
-      padding: 20px;
-      max-width: 700px;
-      margin: auto;
-    }
-
-    h2 {
-      margin-top: 5px;
-    }
-
-    .subtitle {
-      color: #aeb6c7;
-      margin-bottom: 18px;
-    }
-
-    .destinations {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 25px;
-    }
-
-    .destination {
-      background: #1f2937;
-      border: 1px solid #374151;
-      border-radius: 14px;
-      padding: 14px 5px;
-      color: white;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .destination:hover {
-      background: #2b3748;
-    }
-
-    .destination span {
-      display: block;
-      font-size: 24px;
-      margin-bottom: 7px;
-    }
-
-    .line-card {
-      background: #1f2937;
-      border-radius: 15px;
-      padding: 17px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      border: 1px solid #374151;
-    }
-
-    .line-card:hover {
-      border-color: #5271ff;
-    }
-
-    .line-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .line-number {
-      font-size: 21px;
-      font-weight: bold;
-    }
-
-    .time {
-      font-weight: bold;
-      color: #72e06a;
-    }
-
-    .status {
-      margin-top: 8px;
-      color: #b8c0cf;
-      font-size: 14px;
-    }
-
-    .details {
-      display: none;
-      background: #1f2937;
-      border-radius: 18px;
-      padding: 20px;
-      margin-top: 20px;
-    }
-
-    .details h2 {
-      color: white;
-    }
-
-    .back {
-      background: transparent;
-      border: none;
-      color: #8fa4ff;
-      cursor: pointer;
-      padding: 0;
-      margin-bottom: 15px;
-      font-size: 15px;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .info {
-      background: #111827;
-      border-radius: 12px;
-      padding: 15px;
-    }
-
-    .info-title {
-      color: #9ca3af;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    .info-value {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .evaluate {
-      margin-top: 20px;
-    }
-
-    .stars {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .star {
-      background: #111827;
-      border: none;
-      color: #6b7280;
-      font-size: 28px;
-      cursor: pointer;
-      border-radius: 8px;
-    }
-
-    .star:hover {
-      color: #ffd43b;
-    }
-
-    .notice {
-      margin-top: 15px;
-      color: #72e06a;
-      display: none;
-    }
-
-    @media (max-width: 500px) {
-      .destinations {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      #map {
-        height: 40vh;
-      }
-    }
-  </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header>
-  🚌 BusReview
-</header>
-
-<div id="map"></div>
-
-<div class="content">
-
-  <div id="home">
-
-    <h2>Para onde você quer ir?</h2>
-
-    <div class="subtitle">
-      Escolha um destino para encontrar as melhores opções.
-    </div>
-
-    <div class="destinations">
-
-      <button class="destination" onclick="buscarDestino('Casa')">
-        <span>🏠</span>
-        Casa
-      </button>
-
-      <button class="destination" onclick="buscarDestino('Escola')">
-        <span>🏫</span>
-        Escola
-      </button>
-
-      <button class="destination" onclick="buscarDestino('Trabalho')">
-        <span>💼</span>
-        Trabalho
-      </button>
-
-      <button class="destination" onclick="buscarDestino('Outro')">
-        <span>➕</span>
-        Outro
-      </button>
-
-    </div>
-
-    <h2>Linhas próximas</h2>
-
-    <div id="lines"></div>
-
-  </div>
-
-  <div id="details" class="details">
-
-    <button class="back" onclick="voltar()">
-      ← Voltar
-    </button>
-
-    <h2 id="detailLine">675A</h2>
-
-    <div id="detailStatus">
-      🟢 Operação normal
-    </div>
-
-    <div class="info-grid">
-
-      <div class="info">
-        <div class="info-title">
-          Próximo ônibus
+    <header>
+        <div class="logo">
+            🚌 BusReview
         </div>
+    </header>
 
-        <div class="info-value" id="detailTime">
-          6 min
-        </div>
-      </div>
-
-      <div class="info">
-        <div class="info-title">
-          Confiabilidade
-        </div>
-
-        <div class="info-value" id="detailReliability">
-          96%
-        </div>
-      </div>
-
-      <div class="info">
-        <div class="info-title">
-          Lotação
-        </div>
+    <main>
 
-        <div class="info-value" id="detailCrowding">
-          🟡 Cheio
-        </div>
-      </div>
+        <section class="hero">
 
-      <div class="info">
-        <div class="info-title">
-          Horário de pico
-        </div>
+            <h1>Para onde você quer ir?</h1>
 
-        <div class="info-value">
-          06:40 – 08:10
-        </div>
-      </div>
+            <p>
+                Encontre linhas, acompanhe ônibus
+                e avalie sua viagem.
+            </p>
 
-    </div>
-
-    <div class="evaluate">
-
-      <h3>Como foi sua viagem?</h3>
-
-      <div class="stars">
-
-        <button class="star" onclick="avaliar(1)">★</button>
-        <button class="star" onclick="avaliar(2)">★</button>
-        <button class="star" onclick="avaliar(3)">★</button>
-        <button class="star" onclick="avaliar(4)">★</button>
-        <button class="star" onclick="avaliar(5)">★</button>
-
-      </div>
-
-      <div id="notice" class="notice">
-        Avaliação registrada!
-      </div>
-
-    </div>
-
-  </div>
+            <div class="destinos">
 
-</div>
+                <button onclick="buscarDestino('Casa')">
+                    🏠
+                    <span>Casa</span>
+                </button>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                <button onclick="buscarDestino('Escola')">
+                    🏫
+                    <span>Escola</span>
+                </button>
 
-<script>
+                <button onclick="buscarDestino('Trabalho')">
+                    💼
+                    <span>Trabalho</span>
+                </button>
 
-  // =========================
-  // MAPA
-  // =========================
+                <button onclick="buscarDestino('Outro')">
+                    ➕
+                    <span>Outro</span>
+                </button>
 
-  const map = L.map("map").setView(
-    [-23.5505, -46.6333],
-    13
-  );
+            </div>
 
-  L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    {
-      attribution: "&copy; OpenStreetMap &copy; CARTO"
-    }
-  ).addTo(map);
+        </section>
 
 
-  // =========================
-  // PONTOS SIMULADOS
-  // =========================
+        <section class="map-container">
 
-  const pontos = [
-    {
-      nome: "Ponto Interlagos",
-      lat: -23.7015,
-      lon: -46.7020
-    },
-    {
-      nome: "Ponto Autódromo",
-      lat: -23.7035,
-      lon: -46.6990
-    },
-    {
-      nome: "Ponto Avenida",
-      lat: -23.7060,
-      lon: -46.7050
-    }
-  ];
+            <div id="map"></div>
 
-  pontos.forEach(ponto => {
+        </section>
 
-    const marker = L.marker([
-      ponto.lat,
-      ponto.lon
-    ]).addTo(map);
 
-    marker.bindPopup(`
-      <b>${ponto.nome}</b><br>
-      🚌 675A<br>
-      🚌 6021
-    `);
+        <section class="linhas">
 
-  });
+            <h2>Linhas próximas</h2>
 
+            <div id="listaLinhas"></div>
 
-  // =========================
-  // LINHAS
-  // =========================
+        </section>
 
-  const linhas = [
 
-    {
-      numero: "675A",
-      tempo: 6,
-      confiabilidade: 96,
-      lotacao: "🟡 Cheio",
-      status: "🟢 Operação normal"
-    },
+        <section
+            id="detalhes"
+            class="detalhes"
+        >
 
-    {
-      numero: "6021",
-      tempo: 11,
-      confiabilidade: 88,
-      lotacao: "🟢 Normal",
-      status: "🟢 Operação normal"
-    },
+            <button
+                class="voltar"
+                onclick="fecharDetalhes()"
+            >
+                ← Voltar
+            </button>
 
-    {
-      numero: "637V",
-      tempo: 18,
-      confiabilidade: 61,
-      lotacao: "🔴 Muito cheio",
-      status: "🟠 Movimento acima do normal"
-    }
+            <h2 id="linhaNome">
+                Linha
+            </h2>
 
-  ];
+            <div
+                id="linhaStatus"
+                class="status"
+            >
+            </div>
 
+            <div class="informacoes">
 
-  function mostrarLinhas() {
+                <div class="info">
 
-    const container =
-      document.getElementById("lines");
+                    <small>
+                        Próximo ônibus
+                    </small>
 
-    container.innerHTML = "";
+                    <strong id="tempo">
+                        -
+                    </strong>
 
-    linhas.forEach(linha => {
+                </div>
 
-      const card =
-        document.createElement("div");
 
-      card.className = "line-card";
+                <div class="info">
 
-      card.onclick = () =>
-        abrirLinha(linha);
+                    <small>
+                        Confiabilidade
+                    </small>
 
-      card.innerHTML = `
+                    <strong id="confiabilidade">
+                        -
+                    </strong>
 
-        <div class="line-header">
+                </div>
 
-          <div class="line-number">
-            ${linha.numero}
-          </div>
 
-          <div class="time">
-            ${linha.tempo} min
-          </div>
+                <div class="info">
 
-        </div>
+                    <small>
+                        Lotação
+                    </small>
 
-        <div class="status">
-          ${linha.status}
-          · Confiabilidade ${linha.confiabilidade}%
-        </div>
+                    <strong id="lotacao">
+                        -
+                    </strong>
 
-      `;
+                </div>
 
-      container.appendChild(card);
 
-    });
+                <div class="info">
 
-  }
+                    <small>
+                        Horário de pico
+                    </small>
 
+                    <strong>
+                        06:40 – 08:10
+                    </strong>
 
-  mostrarLinhas();
+                </div>
 
+            </div>
 
-  // =========================
-  // DESTINO
-  // =========================
 
-  function buscarDestino(destino) {
+            <div class="avaliacao">
 
-    alert(
-      "Buscando melhores rotas para: " +
-      destino
-    );
+                <h3>
+                    Como foi sua viagem?
+                </h3>
 
-  }
+                <div class="estrelas">
 
+                    <button onclick="avaliar(1)">
+                        ★
+                    </button>
 
-  // =========================
-  // DETALHES DA LINHA
-  // =========================
+                    <button onclick="avaliar(2)">
+                        ★
+                    </button>
 
-  function abrirLinha(linha) {
+                    <button onclick="avaliar(3)">
+                        ★
+                    </button>
 
-    document.getElementById("home")
-      .style.display = "none";
+                    <button onclick="avaliar(4)">
+                        ★
+                    </button>
 
-    document.getElementById("details")
-      .style.display = "block";
+                    <button onclick="avaliar(5)">
+                        ★
+                    </button>
 
-    document.getElementById("detailLine")
-      .textContent = linha.numero;
+                </div>
 
-    document.getElementById("detailStatus")
-      .textContent = linha.status;
+                <p id="mensagemAvaliacao"></p>
 
-    document.getElementById("detailTime")
-      .textContent = linha.tempo + " min";
+            </div>
 
-    document.getElementById("detailReliability")
-      .textContent = linha.confiabilidade + "%";
+        </section>
 
-    document.getElementById("detailCrowding")
-      .textContent = linha.lotacao;
+    </main>
 
-  }
 
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
 
-  function voltar() {
-
-    document.getElementById("details")
-      .style.display = "none";
-
-    document.getElementById("home")
-      .style.display = "block";
-
-  }
-
-
-  // =========================
-  // AVALIAÇÃO
-  // =========================
-
-  function avaliar(nota) {
-
-    console.log(
-      "Usuário avaliou com:",
-      nota
-    );
-
-    document.getElementById("notice")
-      .style.display = "block";
-
-  }
-
-
-  // =========================
-  // LOCALIZAÇÃO
-  // =========================
-
-  if (navigator.geolocation) {
-
-    navigator.geolocation.getCurrentPosition(
-
-      position => {
-
-        const lat =
-          position.coords.latitude;
-
-        const lon =
-          position.coords.longitude;
-
-        L.marker([lat, lon])
-          .addTo(map)
-          .bindPopup("📍 Você está aqui")
-          .openPopup();
-
-        map.setView(
-          [lat, lon],
-          14
-        );
-
-      },
-
-      error => {
-
-        console.log(
-          "Não foi possível obter localização."
-        );
-
-      }
-
-    );
-
-  }
-
-</script>
+    <script src="app.js"></script>
 
 </body>
 </html>
