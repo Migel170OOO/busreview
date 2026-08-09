@@ -4,14 +4,16 @@
 
 body {
     margin: 0;
+
     font-family: Arial, sans-serif;
 
     background: #111827;
+
     color: white;
 }
 
 
-/* CABEÇALHO */
+/* HEADER */
 
 header {
     height: 65px;
@@ -19,16 +21,19 @@ header {
     background: #5271FF;
 
     display: flex;
+
     align-items: center;
 
     padding: 0 25px;
 
     position: relative;
+
     z-index: 1000;
 }
 
 .logo {
     font-size: 23px;
+
     font-weight: bold;
 }
 
@@ -37,11 +42,12 @@ header {
 
 main {
     max-width: 900px;
+
     margin: auto;
 }
 
 
-/* HERO */
+/* HOME */
 
 .hero {
     padding: 30px 20px;
@@ -106,6 +112,7 @@ main {
 
 #map {
     width: 100%;
+
     height: 430px;
 }
 
@@ -115,11 +122,6 @@ main {
 .linhas {
     padding: 25px 20px;
 }
-
-.linhas h2 {
-    margin-bottom: 15px;
-}
-
 
 .linha-card {
     background: #1f2937;
@@ -139,7 +141,6 @@ main {
     border-color: #5271FF;
 }
 
-
 .linha-topo {
     display: flex;
 
@@ -148,20 +149,17 @@ main {
     align-items: center;
 }
 
-
 .numero {
     font-size: 21px;
 
     font-weight: bold;
 }
 
-
 .tempo {
     color: #72e06a;
 
     font-weight: bold;
 }
-
 
 .status {
     color: #aeb6c7;
@@ -172,20 +170,16 @@ main {
 }
 
 
-/* DETALHES */
+/* TELAS */
 
-.detalhes {
+.tela {
     display: none;
 
-    margin: 20px;
-
-    padding: 25px;
-
-    background: #1f2937;
-
-    border-radius: 18px;
+    padding: 25px 20px;
 }
 
+
+/* BOTÃO VOLTAR */
 
 .voltar {
     border: none;
@@ -201,6 +195,63 @@ main {
     margin-bottom: 15px;
 }
 
+.subtitulo {
+    color: #9ca3af;
+}
+
+
+/* ROTAS */
+
+.rota-card {
+    background: #1f2937;
+
+    border: 1px solid #374151;
+
+    border-radius: 16px;
+
+    padding: 20px;
+
+    margin-bottom: 14px;
+
+    cursor: pointer;
+}
+
+.rota-card:hover {
+    border-color: #5271FF;
+}
+
+.rota-topo {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+.rota-numero {
+    font-size: 22px;
+
+    font-weight: bold;
+}
+
+.rota-tempo {
+    color: #72e06a;
+
+    font-weight: bold;
+
+    font-size: 18px;
+}
+
+.rota-info {
+    margin-top: 12px;
+
+    color: #aeb6c7;
+
+    line-height: 1.7;
+}
+
+
+/* INFORMAÇÕES */
 
 .informacoes {
     display: grid;
@@ -213,7 +264,6 @@ main {
     margin-top: 20px;
 }
 
-
 .info {
     background: #111827;
 
@@ -221,7 +271,6 @@ main {
 
     padding: 17px;
 }
-
 
 .info small {
     display: block;
@@ -231,8 +280,32 @@ main {
     margin-bottom: 8px;
 }
 
-
 .info strong {
+    font-size: 18px;
+}
+
+
+/* PICO */
+
+.pico {
+    background: #111827;
+
+    border-radius: 12px;
+
+    padding: 17px;
+
+    margin-top: 12px;
+}
+
+.pico small {
+    display: block;
+
+    color: #9ca3af;
+
+    margin-bottom: 8px;
+}
+
+.pico strong {
     font-size: 18px;
 }
 
@@ -243,13 +316,15 @@ main {
     margin-top: 30px;
 }
 
+.avaliacao p {
+    color: #aeb6c7;
+}
 
 .estrelas {
     display: flex;
 
     gap: 7px;
 }
-
 
 .estrelas button {
     background: #111827;
@@ -265,11 +340,9 @@ main {
     border-radius: 8px;
 }
 
-
 .estrelas button:hover {
     color: #FFD43B;
 }
-
 
 #mensagemAvaliacao {
     color: #72e06a;
