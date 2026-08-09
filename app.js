@@ -1,79 +1,708 @@
-// ==========================================
-// MAPA
-// ==========================================
+// ========================================
+// CONFIGURAÇÃO
+// ========================================
 
-const map = L.map("map").setView(
-    [-23.5505, -46.6333],
-    13
+// Interlagos como localização inicial.
+// Se o navegador permitir localização,
+// o mapa será automaticamente centralizado
+// no usuário.
+
+const INTERLAGOS = [
+    -23.7015,
+    -46.7020
+];
+
+const RAIO_KM = 2;
+
+
+// ========================================
+// CRIAR MAPA
+// ========================================
+
+const map = L.map("map", {
+
+    zoomControl: true
+
+}).setView(
+    INTERLAGOS,
+    14
 );
 
 
+// ========================================
+// MAPA ESCURO
+// ========================================
+
 L.tileLayer(
+
     "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+
     {
+
         attribution:
-            "&copy; OpenStreetMap &copy; CARTO"
+            "&copy; OpenStreetMap &copy; CARTO",
+
+        maxZoom: 19
+
     }
+
 ).addTo(map);
 
 
-// ==========================================
+// ========================================
+// VARIÁVEIS
+// ========================================
+
+let usuarioLat = INTERLAGOS[0];
+
+let usuarioLon = INTERLAGOS[1];
+
+let usuarioMarker = null;
+
+let raioCircle = null;
+
+
+// ========================================
 // PONTOS DE ÔNIBUS
-// ==========================================
+//
+// POR ENQUANTO SÃO PONTOS DE TESTE.
+// ========================================
 
 const pontos = [
 
     {
-        nome: "Ponto Interlagos",
-        lat: -23.7015,
-        lon: -46.7020
+        id: 1,
+
+        nome:
+            "Ponto Avenida Interlagos",
+
+        lat:
+            -23.7022,
+
+        lon:
+            -46.7025,
+
+        distancia:
+            "180 m"
     },
 
-    {
-        nome: "Ponto Autódromo",
-        lat: -23.7035,
-        lon: -46.6990
-    },
 
     {
-        nome: "Ponto Avenida",
-        lat: -23.7060,
-        lon: -46.7050
+        id: 2,
+
+        nome:
+            "Ponto Autódromo",
+
+        lat:
+            -23.7037,
+
+        lon:
+            -46.6995,
+
+        distancia:
+            "430 m"
+    },
+
+
+    {
+        id: 3,
+
+        nome:
+            "Ponto Rio Bonito",
+
+        lat:
+            -23.7055,
+
+        lon:
+            -46.7050,
+
+        distancia:
+            "620 m"
+    },
+
+
+    {
+        id: 4,
+
+        nome:
+            "Ponto Avenida Atlântica",
+
+        lat:
+            -23.6988,
+
+        lon:
+            -46.7060,
+
+        distancia:
+            "850 m"
+    },
+
+
+    {
+        id: 5,
+
+        nome:
+            "Ponto Interlagos",
+
+        lat:
+            -23.6958,
+
+        lon:
+            -46.7010,
+
+        distancia:
+            "1,1 km"
     }
 
 ];
 
 
-pontos.forEach(ponto => {
+// ========================================
+// ÔNIBUS DE CADA PONTO
+//
+// ESTES HORÁRIOS SÃO SIMULADOS.
+// ========================================
 
-    const marker = L.marker([
-        ponto.lat,
-        ponto.lon
-    ]).addTo(map);
+const chegadas = {
+
+    1: [
+
+        {
+            linha: "675A",
+
+            destino: "Terminal Santo Amaro",
+
+            minutos: 6,
+
+            horario: "12:36"
+
+        },
+
+        {
+            linha: "6021",
+
+            destino: "Jardim Miriam",
+
+            minutos: 12,
+
+            horario: "12:42"
+
+        },
+
+        {
+            linha: "637V",
+
+            destino: "Pinheiros",
+
+            minutos: 19,
+
+            horario: "12:49"
+
+        }
+
+    ],
 
 
-    marker.bindPopup(`
-        <b>${ponto.nome}</b>
+    2: [
 
-        <br>
+        {
+            linha: "675A",
 
-        🚌 675A
+            destino: "Terminal Santo Amaro",
 
-        <br>
+            minutos: 4,
 
-        🚌 6021
-    `);
+            horario: "12:34"
 
-});
+        },
+
+        {
+            linha: "637V",
+
+            destino: "Pinheiros",
+
+            minutos: 15,
+
+            horario: "12:45"
+
+        }
+
+    ],
 
 
-// ==========================================
-// LOCALIZAÇÃO
-// ==========================================
+    3: [
 
-if (
-    navigator.geolocation
+        {
+            linha: "6021",
+
+            destino: "Jardim Miriam",
+
+            minutos: 7,
+
+            horario: "12:37"
+
+        },
+
+        {
+            linha: "675A",
+
+            destino: "Terminal Santo Amaro",
+
+            minutos: 17,
+
+            horario: "12:47"
+
+        }
+
+    ],
+
+
+    4: [
+
+        {
+            linha: "637V",
+
+            destino: "Pinheiros",
+
+            minutos: 9,
+
+            horario: "12:39"
+
+        },
+
+        {
+            linha: "6021",
+
+            destino: "Jardim Miriam",
+
+            minutos: 21,
+
+            horario: "12:51"
+
+        }
+
+    ],
+
+
+    5: [
+
+        {
+            linha: "675A",
+
+            destino: "Terminal Santo Amaro",
+
+            minutos: 5,
+
+            horario: "12:35"
+
+        },
+
+        {
+            linha: "6021",
+
+            destino: "Jardim Miriam",
+
+            minutos: 14,
+
+            horario: "12:44"
+
+        }
+
+    ]
+
+};
+
+
+// ========================================
+// ÍCONE DOS PONTOS
+// ========================================
+
+const stopIcon =
+    L.divIcon({
+
+        className: "",
+
+        html: `
+            <div class="stop-marker">
+                🚌
+            </div>
+        `,
+
+        iconSize: [
+            31,
+            31
+        ],
+
+        iconAnchor: [
+            15,
+            15
+        ]
+
+    });
+
+
+// ========================================
+// ÍCONE DO USUÁRIO
+// ========================================
+
+const userIcon =
+    L.divIcon({
+
+        className: "",
+
+        html: `
+            <div class="user-marker"></div>
+        `,
+
+        iconSize: [
+            18,
+            18
+        ],
+
+        iconAnchor: [
+            9,
+            9
+        ]
+
+    });
+
+
+// ========================================
+// DESENHAR PONTOS
+// ========================================
+
+function desenharPontos() {
+
+    pontos.forEach(
+        ponto => {
+
+            const marker =
+                L.marker(
+
+                    [
+                        ponto.lat,
+                        ponto.lon
+                    ],
+
+                    {
+                        icon:
+                            stopIcon
+                    }
+
+                ).addTo(map);
+
+
+            marker.bindTooltip(
+                ponto.nome
+            );
+
+
+            marker.on(
+                "click",
+                function() {
+
+                    abrirPonto(
+                        ponto
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// ========================================
+// ABRIR PONTO
+// ========================================
+
+function abrirPonto(ponto) {
+
+    const panel =
+        document.getElementById(
+            "busPanel"
+        );
+
+
+    const nome =
+        document.getElementById(
+            "selectedStopName"
+        );
+
+
+    const distancia =
+        document.getElementById(
+            "selectedStopDistance"
+        );
+
+
+    const arrivals =
+        document.getElementById(
+            "arrivals"
+        );
+
+
+    nome.textContent =
+        ponto.nome;
+
+
+    distancia.textContent =
+        "📍 " +
+        ponto.distancia +
+        " de você";
+
+
+    arrivals.innerHTML = "";
+
+
+    const onibus =
+        chegadas[ponto.id] || [];
+
+
+    if (
+        onibus.length === 0
+    ) {
+
+        arrivals.innerHTML = `
+
+            <div class="arrival-card">
+
+                Nenhum ônibus encontrado.
+
+            </div>
+
+        `;
+
+    }
+
+
+    onibus.forEach(
+        bus => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "arrival-card";
+
+
+            card.innerHTML = `
+
+                <div class="arrival-top">
+
+                    <div class="line-number">
+
+                        ${bus.linha}
+
+                    </div>
+
+                    <div class="arrival-time">
+
+                        ${bus.minutos} min
+
+                    </div>
+
+                </div>
+
+
+                <div class="destination">
+
+                    ${bus.destino}
+
+                </div>
+
+
+                <div class="arrival-status">
+
+                    Previsão:
+                    ${bus.horario}
+
+                </div>
+
+            `;
+
+
+            arrivals.appendChild(
+                card
+            );
+
+        }
+    );
+
+
+    panel.classList.add(
+        "open"
+    );
+
+}
+
+
+// ========================================
+// FECHAR PAINEL
+// ========================================
+
+function fecharPainel() {
+
+    document
+        .getElementById(
+            "busPanel"
+        )
+        .classList.remove(
+            "open"
+        );
+
+}
+
+
+// ========================================
+// CRIAR LOCALIZAÇÃO DO USUÁRIO
+// ========================================
+
+function atualizarLocalizacao(
+    lat,
+    lon
 ) {
+
+    usuarioLat = lat;
+
+    usuarioLon = lon;
+
+
+    if (
+        usuarioMarker
+    ) {
+
+        usuarioMarker.setLatLng(
+            [
+                lat,
+                lon
+            ]
+        );
+
+    } else {
+
+        usuarioMarker =
+            L.marker(
+
+                [
+                    lat,
+                    lon
+                ],
+
+                {
+                    icon:
+                        userIcon,
+
+                    zIndexOffset:
+                        1000
+                }
+
+            ).addTo(map);
+
+
+        usuarioMarker.bindTooltip(
+            "Você está aqui"
+        );
+
+    }
+
+
+    // Círculo de 2 km
+
+    if (
+        raioCircle
+    ) {
+
+        raioCircle.setLatLng(
+            [
+                lat,
+                lon
+            ]
+        );
+
+    } else {
+
+        raioCircle =
+            L.circle(
+
+                [
+                    lat,
+                    lon
+                ],
+
+                {
+
+                    radius:
+                        RAIO_KM * 1000,
+
+                    color:
+                        "#5271ff",
+
+                    weight:
+                        2,
+
+                    opacity:
+                        0.7,
+
+                    fillColor:
+                        "#5271ff",
+
+                    fillOpacity:
+                        0.08
+
+                }
+
+            ).addTo(map);
+
+    }
+
+}
+
+
+// ========================================
+// CENTRALIZAR NO USUÁRIO
+// ========================================
+
+function centralizarUsuario() {
+
+    map.setView(
+
+        [
+            usuarioLat,
+            usuarioLon
+        ],
+
+        14
+
+    );
+
+}
+
+
+// ========================================
+// TENTAR PEGAR LOCALIZAÇÃO REAL
+// ========================================
+
+function pegarLocalizacao() {
+
+    if (
+        !navigator.geolocation
+    ) {
+
+        atualizarLocalizacao(
+            usuarioLat,
+            usuarioLon
+        );
+
+        return;
+
+    }
+
 
     navigator.geolocation.getCurrentPosition(
 
@@ -86,28 +715,53 @@ if (
                 position.coords.longitude;
 
 
-            L.marker([
+            atualizarLocalizacao(
                 lat,
                 lon
-            ])
-            .addTo(map)
-            .bindPopup(
-                "📍 Você está aqui"
             );
 
 
             map.setView(
-                [lat, lon],
+
+                [
+                    lat,
+                    lon
+                ],
+
                 14
+
             );
 
         },
 
-        function() {
+
+        function(error) {
 
             console.log(
-                "Localização não disponível."
+                "Localização não autorizada."
             );
+
+
+            // Usa Interlagos
+            // como localização inicial.
+
+            atualizarLocalizacao(
+                usuarioLat,
+                usuarioLon
+            );
+
+        },
+
+        {
+
+            enableHighAccuracy:
+                true,
+
+            timeout:
+                10000,
+
+            maximumAge:
+                60000
 
         }
 
@@ -116,380 +770,20 @@ if (
 }
 
 
-// ==========================================
-// LINHAS
-// ==========================================
+// ========================================
+// INICIAR
+// ========================================
 
-const linhas = [
+atualizarLocalizacao(
 
-    {
-        numero: "675A",
+    usuarioLat,
 
-        tempo: 6,
+    usuarioLon
 
-        duracao: 28,
+);
 
-        confiabilidade: 96,
 
-        lotacao: "🟡 Cheio",
+desenharPontos();
 
-        status:
-            "🟢 Operação normal"
-    },
 
-
-    {
-        numero: "6021",
-
-        tempo: 11,
-
-        duracao: 31,
-
-        confiabilidade: 88,
-
-        lotacao: "🟢 Normal",
-
-        status:
-            "🟢 Operação normal"
-    },
-
-
-    {
-        numero: "637V",
-
-        tempo: 18,
-
-        duracao: 35,
-
-        confiabilidade: 61,
-
-        lotacao: "🔴 Muito cheio",
-
-        status:
-            "🟠 Movimento acima do normal"
-    }
-
-];
-
-
-// ==========================================
-// MOSTRAR LINHAS
-// ==========================================
-
-function mostrarLinhas() {
-
-    const lista =
-        document.getElementById(
-            "listaLinhas"
-        );
-
-
-    lista.innerHTML = "";
-
-
-    linhas.forEach(linha => {
-
-        const card =
-            document.createElement(
-                "div"
-            );
-
-
-        card.className =
-            "linha-card";
-
-
-        card.onclick = function() {
-
-            abrirLinha(
-                linha,
-                "home"
-            );
-
-        };
-
-
-        card.innerHTML = `
-
-            <div class="linha-topo">
-
-                <div class="numero">
-                    ${linha.numero}
-                </div>
-
-                <div class="tempo">
-                    ${linha.tempo} min
-                </div>
-
-            </div>
-
-            <div class="status">
-
-                ${linha.status}
-
-                ·
-
-                Confiabilidade:
-                ${linha.confiabilidade}%
-
-            </div>
-
-        `;
-
-
-        lista.appendChild(card);
-
-    });
-
-}
-
-
-mostrarLinhas();
-
-
-// ==========================================
-// ESCOLHER DESTINO
-// ==========================================
-
-function buscarDestino(destino) {
-
-    document.getElementById(
-        "home"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "rotas"
-    ).style.display = "block";
-
-
-    document.getElementById(
-        "tituloDestino"
-    ).textContent =
-        "Rotas para " + destino;
-
-
-    mostrarRotas();
-
-}
-
-
-// ==========================================
-// MOSTRAR ROTAS
-// ==========================================
-
-function mostrarRotas() {
-
-    const lista =
-        document.getElementById(
-            "listaRotas"
-        );
-
-
-    lista.innerHTML = "";
-
-
-    linhas.forEach(linha => {
-
-        const card =
-            document.createElement(
-                "div"
-            );
-
-
-        card.className =
-            "rota-card";
-
-
-        card.onclick = function() {
-
-            abrirLinha(
-                linha,
-                "rotas"
-            );
-
-        };
-
-
-        card.innerHTML = `
-
-            <div class="rota-topo">
-
-                <div class="rota-numero">
-
-                    ${linha.numero}
-
-                </div>
-
-                <div class="rota-tempo">
-
-                    ${linha.tempo} min
-
-                </div>
-
-            </div>
-
-
-            <div class="rota-info">
-
-                Viagem:
-                ${linha.duracao} min
-
-                <br>
-
-                Confiabilidade:
-                ${linha.confiabilidade}%
-
-                <br>
-
-                Lotação:
-                ${linha.lotacao}
-
-            </div>
-
-        `;
-
-
-        lista.appendChild(card);
-
-    });
-
-}
-
-
-// ==========================================
-// ABRIR DETALHES
-// ==========================================
-
-let telaAnterior = "home";
-
-
-function abrirLinha(
-    linha,
-    origem
-) {
-
-    telaAnterior = origem;
-
-
-    document.getElementById(
-        "home"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "rotas"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "detalhes"
-    ).style.display = "block";
-
-
-    document.getElementById(
-        "linhaNome"
-    ).textContent =
-        linha.numero;
-
-
-    document.getElementById(
-        "linhaStatus"
-    ).textContent =
-        linha.status;
-
-
-    document.getElementById(
-        "tempo"
-    ).textContent =
-        linha.tempo + " min";
-
-
-    document.getElementById(
-        "confiabilidade"
-    ).textContent =
-        linha.confiabilidade + "%";
-
-
-    document.getElementById(
-        "lotacao"
-    ).textContent =
-        linha.lotacao;
-
-
-    document.getElementById(
-        "duracao"
-    ).textContent =
-        linha.duracao + " min";
-
-}
-
-
-// ==========================================
-// VOLTAR PARA HOME
-// ==========================================
-
-function voltarHome() {
-
-    document.getElementById(
-        "rotas"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "detalhes"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "home"
-    ).style.display = "block";
-
-}
-
-
-// ==========================================
-// VOLTAR DAS ROTAS
-// ==========================================
-
-function voltarRotas() {
-
-    document.getElementById(
-        "detalhes"
-    ).style.display = "none";
-
-
-    if (
-        telaAnterior === "rotas"
-    ) {
-
-        document.getElementById(
-            "rotas"
-        ).style.display = "block";
-
-    } else {
-
-        document.getElementById(
-            "home"
-        ).style.display = "block";
-
-    }
-
-}
-
-
-// ==========================================
-// AVALIAÇÃO
-// ==========================================
-
-function avaliar(nota) {
-
-    document.getElementById(
-        "mensagemAvaliacao"
-    ).textContent =
-
-        "Obrigado! Você deu " +
-        nota +
-        " estrela(s) para esta viagem.";
-
-}
+pegarLocalizacao();
