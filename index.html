@@ -16,21 +16,23 @@
 
 <body>
 
-    <header>
-        <div class="logo">
-            🚌 BusReview
-        </div>
-    </header>
+<header>
+    <div class="logo">🚌 BusReview</div>
+</header>
 
-    <main>
+<main>
+
+    <!-- HOME -->
+
+    <section id="home">
 
         <section class="hero">
 
             <h1>Para onde você quer ir?</h1>
 
             <p>
-                Encontre linhas, acompanhe ônibus
-                e avalie sua viagem.
+                Escolha um destino para encontrar
+                as melhores opções de ônibus.
             </p>
 
             <div class="destinos">
@@ -60,12 +62,16 @@
         </section>
 
 
+        <!-- MAPA -->
+
         <section class="map-container">
 
             <div id="map"></div>
 
         </section>
 
+
+        <!-- LINHAS -->
 
         <section class="linhas">
 
@@ -75,129 +81,171 @@
 
         </section>
 
+    </section>
 
-        <section
-            id="detalhes"
-            class="detalhes"
+
+    <!-- ROTAS -->
+
+    <section
+        id="rotas"
+        class="tela"
+    >
+
+        <button
+            class="voltar"
+            onclick="voltarHome()"
         >
+            ← Voltar
+        </button>
 
-            <button
-                class="voltar"
-                onclick="fecharDetalhes()"
-            >
-                ← Voltar
-            </button>
+        <h1 id="tituloDestino">
+            Rotas
+        </h1>
 
-            <h2 id="linhaNome">
-                Linha
-            </h2>
+        <p class="subtitulo">
+            Melhores opções encontradas
+        </p>
 
-            <div
-                id="linhaStatus"
-                class="status"
-            >
-            </div>
+        <div id="listaRotas"></div>
 
-            <div class="informacoes">
-
-                <div class="info">
-
-                    <small>
-                        Próximo ônibus
-                    </small>
-
-                    <strong id="tempo">
-                        -
-                    </strong>
-
-                </div>
+    </section>
 
 
-                <div class="info">
+    <!-- DETALHES DA LINHA -->
 
-                    <small>
-                        Confiabilidade
-                    </small>
+    <section
+        id="detalhes"
+        class="tela"
+    >
 
-                    <strong id="confiabilidade">
-                        -
-                    </strong>
+        <button
+            class="voltar"
+            onclick="voltarRotas()"
+        >
+            ← Voltar
+        </button>
 
-                </div>
+        <h1 id="linhaNome">
+            Linha
+        </h1>
 
-
-                <div class="info">
-
-                    <small>
-                        Lotação
-                    </small>
-
-                    <strong id="lotacao">
-                        -
-                    </strong>
-
-                </div>
+        <div
+            id="linhaStatus"
+            class="status"
+        >
+        </div>
 
 
-                <div class="info">
+        <div class="informacoes">
 
-                    <small>
-                        Horário de pico
-                    </small>
+            <div class="info">
 
-                    <strong>
-                        06:40 – 08:10
-                    </strong>
+                <small>
+                    Próximo ônibus
+                </small>
 
-                </div>
+                <strong id="tempo">
+                    -
+                </strong>
 
             </div>
 
 
-            <div class="avaliacao">
+            <div class="info">
 
-                <h3>
-                    Como foi sua viagem?
-                </h3>
+                <small>
+                    Confiabilidade
+                </small>
 
-                <div class="estrelas">
-
-                    <button onclick="avaliar(1)">
-                        ★
-                    </button>
-
-                    <button onclick="avaliar(2)">
-                        ★
-                    </button>
-
-                    <button onclick="avaliar(3)">
-                        ★
-                    </button>
-
-                    <button onclick="avaliar(4)">
-                        ★
-                    </button>
-
-                    <button onclick="avaliar(5)">
-                        ★
-                    </button>
-
-                </div>
-
-                <p id="mensagemAvaliacao"></p>
+                <strong id="confiabilidade">
+                    -
+                </strong>
 
             </div>
 
-        </section>
 
-    </main>
+            <div class="info">
+
+                <small>
+                    Lotação
+                </small>
+
+                <strong id="lotacao">
+                    -
+                </strong>
+
+            </div>
 
 
-    <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
+            <div class="info">
 
-    <script src="app.js"></script>
+                <small>
+                    Tempo de viagem
+                </small>
+
+                <strong id="duracao">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="pico">
+
+            <small>
+                Horário de maior movimento
+            </small>
+
+            <strong>
+                06:40 – 08:10
+            </strong>
+
+        </div>
+
+
+        <!-- AVALIAÇÃO -->
+
+        <div class="avaliacao">
+
+            <h3>
+                Como foi sua viagem?
+            </h3>
+
+            <p>
+                Avalie a experiência para ajudar
+                outros passageiros.
+            </p>
+
+            <div class="estrelas">
+
+                <button onclick="avaliar(1)">★</button>
+
+                <button onclick="avaliar(2)">★</button>
+
+                <button onclick="avaliar(3)">★</button>
+
+                <button onclick="avaliar(4)">★</button>
+
+                <button onclick="avaliar(5)">★</button>
+
+            </div>
+
+            <p id="mensagemAvaliacao"></p>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script src="app.js"></script>
 
 </body>
 </html>
