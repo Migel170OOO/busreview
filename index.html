@@ -12,13 +12,12 @@
 
     <title>BusReview</title>
 
-    <!-- Leaflet -->
+    <!-- LEAFLET -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <!-- Nosso CSS -->
     <link
         rel="stylesheet"
         href="style.css"
@@ -26,20 +25,23 @@
 
 </head>
 
-
 <body>
 
 
+    <!-- ===================================== -->
     <!-- MAPA -->
+    <!-- ===================================== -->
 
     <div id="map"></div>
 
 
+    <!-- ===================================== -->
     <!-- LOGO -->
+    <!-- ===================================== -->
 
     <div class="logo">
 
-        <div class="logo-icon">
+        <div class="logo-icone">
             🚌
         </div>
 
@@ -50,7 +52,9 @@
     </div>
 
 
-    <!-- INFORMAÇÃO SOBRE O RAIO -->
+    <!-- ===================================== -->
+    <!-- RAIO -->
+    <!-- ===================================== -->
 
     <div class="radius-info">
 
@@ -61,87 +65,385 @@
     </div>
 
 
-    <!-- BOTÃO DE LOCALIZAÇÃO -->
+    <!-- ===================================== -->
+    <!-- LOCALIZAÇÃO -->
+    <!-- ===================================== -->
 
     <button
         id="locationButton"
         class="location-button"
+        type="button"
         onclick="centralizarUsuario()"
+        aria-label="Centralizar na minha localização"
     >
-
         📍
-
     </button>
 
 
+    <!-- ===================================== -->
     <!-- PAINEL DO PONTO -->
+    <!-- ===================================== -->
 
-    <section
-        id="busPanel"
-        class="bus-panel"
+    <aside
+        id="painel-ponto"
+        class="painel-ponto"
     >
 
-        <div class="panel-handle"></div>
-
-
         <button
-            class="close-button"
-            onclick="fecharPainel()"
+            class="fechar-painel"
+            type="button"
+            onclick="fecharPainelPonto()"
         >
-
             ×
-
         </button>
 
 
-        <div class="panel-header">
+        <div class="painel-conteudo">
 
-            <div>
+            <div class="painel-etiqueta">
+                PONTO DE ÔNIBUS
+            </div>
 
-                <div
-                    id="selectedStopName"
-                    class="stop-name"
-                >
-                    Ponto de ônibus
-                </div>
+            <h2 id="painel-nome-ponto">
+                Ponto de ônibus
+            </h2>
 
-                <div
-                    id="selectedStopDistance"
-                    class="stop-distance"
-                >
-                    Selecione um ponto no mapa
+            <p id="painel-endereco-ponto">
+                Endereço
+            </p>
+
+            <div class="separador"></div>
+
+            <h3>
+                Linhas neste ponto
+            </h3>
+
+            <div id="lista-linhas-ponto">
+
+                <div class="carregando">
+                    Buscando linhas...
                 </div>
 
             </div>
 
         </div>
 
+    </aside>
 
-        <div class="arrivals-title">
 
-            Próximos ônibus
+    <!-- ===================================== -->
+    <!-- MODAL: AVALIAR LINHA -->
+    <!-- ===================================== -->
+
+    <div
+        id="modalAvaliacao"
+        class="modal oculto"
+    >
+
+        <div class="modal-caixa">
+
+            <div class="modal-topo">
+
+                <div>
+
+                    <div class="modal-etiqueta">
+                        SUA EXPERIÊNCIA
+                    </div>
+
+                    <h2 id="tituloAvaliacao">
+                        Avaliar linha
+                    </h2>
+
+                    <p id="subtituloAvaliacao">
+                        Ponto de ônibus
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-fechar"
+                    onclick="fecharModalAvaliacao()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="avaliacao-pergunta">
+                Qual sua nota?
+            </div>
+
+
+            <div
+                id="estrelasAvaliacao"
+                class="estrelas-grandes"
+            >
+
+                <button
+                    type="button"
+                    onclick="definirNota(1)"
+                >
+                    ★
+                </button>
+
+                <button
+                    type="button"
+                    onclick="definirNota(2)"
+                >
+                    ★
+                </button>
+
+                <button
+                    type="button"
+                    onclick="definirNota(3)"
+                >
+                    ★
+                </button>
+
+                <button
+                    type="button"
+                    onclick="definirNota(4)"
+                >
+                    ★
+                </button>
+
+                <button
+                    type="button"
+                    onclick="definirNota(5)"
+                >
+                    ★
+                </button>
+
+            </div>
+
+
+            <div class="campo-grupo">
+
+                <label for="lotacaoAvaliacao">
+                    Como estava a lotação?
+                </label>
+
+                <select id="lotacaoAvaliacao">
+
+                    <option value="">
+                        Não informar
+                    </option>
+
+                    <option value="Baixa">
+                        Baixa
+                    </option>
+
+                    <option value="Média">
+                        Média
+                    </option>
+
+                    <option value="Alta">
+                        Alta
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="campo-grupo">
+
+                <label for="atrasoAvaliacao">
+                    Houve atraso?
+                </label>
+
+                <select id="atrasoAvaliacao">
+
+                    <option value="">
+                        Não sei
+                    </option>
+
+                    <option value="Não">
+                        Não
+                    </option>
+
+                    <option value="Sim">
+                        Sim
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="campo-grupo">
+
+                <label for="textoAvaliacao">
+                    Conte como foi sua experiência
+                </label>
+
+                <textarea
+                    id="textoAvaliacao"
+                    maxlength="500"
+                    placeholder="Ex.: A linha chegou no horário, mas estava muito cheia..."
+                ></textarea>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="botao-principal"
+                onclick="enviarAvaliacao()"
+            >
+                Enviar avaliação
+            </button>
 
         </div>
 
+    </div>
 
-        <div
-            id="arrivals"
-            class="arrivals"
-        >
 
-            <!-- preenchido pelo JavaScript -->
+    <!-- ===================================== -->
+    <!-- MODAL: VER AVALIAÇÕES -->
+    <!-- ===================================== -->
+
+    <div
+        id="modalReviews"
+        class="modal oculto"
+    >
+
+        <div class="modal-caixa modal-reviews">
+
+            <div class="modal-topo">
+
+                <div>
+
+                    <div class="modal-etiqueta">
+                        AVALIAÇÕES DOS PASSAGEIROS
+                    </div>
+
+                    <h2 id="tituloReviews">
+                        Avaliações
+                    </h2>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-fechar"
+                    onclick="fecharModalReviews()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- RESUMO -->
+
+            <div class="reviews-resumo">
+
+                <div class="reviews-nota-grande">
+
+                    <strong id="reviewsMedia">
+                        0,0
+                    </strong>
+
+                    <div
+                        id="reviewsEstrelasMedia"
+                        class="estrelas-resumo"
+                    >
+                        ☆☆☆☆☆
+                    </div>
+
+                    <span id="reviewsQuantidade">
+                        0 avaliações
+                    </span>
+
+                </div>
+
+
+                <div
+                    id="reviewsDistribuicao"
+                    class="reviews-distribuicao"
+                ></div>
+
+            </div>
+
+
+            <!-- FILTROS -->
+
+            <div
+                id="filtrosReviews"
+                class="filtros-reviews"
+            >
+
+                <button
+                    type="button"
+                    class="ativo"
+                    data-nota="0"
+                    onclick="filtrarReviews(0)"
+                >
+                    Todas
+                </button>
+
+                <button
+                    type="button"
+                    data-nota="5"
+                    onclick="filtrarReviews(5)"
+                >
+                    5 ★
+                </button>
+
+                <button
+                    type="button"
+                    data-nota="4"
+                    onclick="filtrarReviews(4)"
+                >
+                    4 ★
+                </button>
+
+                <button
+                    type="button"
+                    data-nota="3"
+                    onclick="filtrarReviews(3)"
+                >
+                    3 ★
+                </button>
+
+                <button
+                    type="button"
+                    data-nota="2"
+                    onclick="filtrarReviews(2)"
+                >
+                    2 ★
+                </button>
+
+                <button
+                    type="button"
+                    data-nota="1"
+                    onclick="filtrarReviews(1)"
+                >
+                    1 ★
+                </button>
+
+            </div>
+
+
+            <!-- LISTA -->
+
+            <div id="listaReviews"></div>
+
+
+            <button
+                type="button"
+                class="botao-principal"
+                onclick="avaliarPeloModalReviews()"
+            >
+                Avaliar esta linha
+            </button>
 
         </div>
 
-
-        <div class="simulation-warning">
-
-            Os horários mostrados nesta versão
-            são simulados.
-
-        </div>
-
-    </section>
+    </div>
 
 
     <!-- LEAFLET -->
@@ -151,10 +453,9 @@
     ></script>
 
 
-    <!-- NOSSO JAVASCRIPT -->
+    <!-- BUSREVIEW -->
 
     <script src="app.js"></script>
-
 
 </body>
 

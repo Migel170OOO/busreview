@@ -1,18 +1,34 @@
+/* ========================================
+   RESET
+======================================== */
+
 * {
     box-sizing: border-box;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
+
     overflow: hidden;
 
-    font-family: Arial, Helvetica, sans-serif;
+    font-family:
+        Inter,
+        Arial,
+        Helvetica,
+        sans-serif;
 
-    background: #111827;
+    background: #07111f;
+    color: white;
+}
+
+button,
+select,
+textarea {
+    font: inherit;
 }
 
 
@@ -22,12 +38,7 @@ body {
 
 #map {
     position: fixed;
-
     inset: 0;
-
-    width: 100%;
-    height: 100%;
-
     z-index: 1;
 }
 
@@ -39,501 +50,967 @@ body {
 .logo {
     position: fixed;
 
-    top: 18px;
-    left: 18px;
+    top: 20px;
+    left: 20px;
 
-    z-index: 1000;
+    z-index: 500;
 
     display: flex;
     align-items: center;
 
     gap: 10px;
 
-    padding: 10px 15px;
+    padding: 11px 15px;
 
     border-radius: 14px;
 
-    background: rgba(17, 24, 39, 0.94);
+    background:
+        rgba(9, 18, 33, 0.92);
 
-    color: white;
-
-    font-size: 20px;
-
-    font-weight: bold;
+    backdrop-filter: blur(10px);
 
     box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.35);
+        0 8px 30px rgba(0, 0, 0, 0.28);
+
+    font-weight: 800;
 }
 
-
-.logo-icon {
-    width: 34px;
-    height: 34px;
-
+.logo-icone {
     display: flex;
-    align-items: center;
+
+    width: 32px;
+    height: 32px;
+
     justify-content: center;
+    align-items: center;
+
+    border-radius: 9px;
 
     background: #5271ff;
-
-    border-radius: 10px;
-
-    font-size: 19px;
 }
 
 
 /* ========================================
-   INFORMAÇÃO DO RAIO
+   RAIO
 ======================================== */
 
 .radius-info {
     position: fixed;
 
-    top: 18px;
-    right: 18px;
+    top: 20px;
+    right: 20px;
 
-    z-index: 1000;
+    z-index: 500;
 
-    background: rgba(17, 24, 39, 0.94);
+    display: flex;
+    align-items: center;
 
-    color: white;
+    gap: 8px;
 
-    padding: 10px 14px;
+    padding: 11px 14px;
 
-    border-radius: 12px;
+    border-radius: 14px;
+
+    background:
+        rgba(9, 18, 33, 0.92);
+
+    color: #d4d8e0;
 
     font-size: 13px;
 
-    box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
 }
 
-
 .location-dot {
-    display: inline-block;
-
-    width: 9px;
-    height: 9px;
-
-    margin-right: 6px;
-
-    background: #5271ff;
+    width: 8px;
+    height: 8px;
 
     border-radius: 50%;
+
+    background: #5271ff;
 }
 
 
 /* ========================================
-   BOTÃO DE LOCALIZAÇÃO
+   BOTÃO LOCALIZAÇÃO
 ======================================== */
 
 .location-button {
     position: fixed;
 
-    right: 18px;
+    right: 20px;
     bottom: 25px;
 
-    z-index: 1000;
+    z-index: 500;
 
     width: 48px;
     height: 48px;
 
-    border: none;
-
+    border: 0;
     border-radius: 50%;
 
     background: #5271ff;
 
     color: white;
 
-    font-size: 20px;
-
     cursor: pointer;
 
+    font-size: 19px;
+
     box-shadow:
-        0 5px 20px rgba(0, 0, 0, 0.4);
-
-    transition: 0.2s;
-}
-
-
-.location-button:hover {
-    transform: scale(1.06);
+        0 8px 25px rgba(0, 0, 0, 0.35);
 }
 
 
 /* ========================================
-   PONTOS DE ÔNIBUS
-   BOLINHAS AZUIS
-======================================== */
-
-.stop-marker {
-    width: 20px;
-    height: 20px;
-
-    background: #5271ff;
-
-    border: 3px solid white;
-
-    border-radius: 50%;
-
-    box-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.5);
-
-    cursor: pointer;
-
-    transition: 0.2s;
-}
-
-
-.stop-marker:hover {
-    transform: scale(1.25);
-}
-
-
-/* ========================================
-   MARCADOR DO USUÁRIO
+   MARCADORES
 ======================================== */
 
 .user-marker {
     width: 18px;
     height: 18px;
 
+    border-radius: 50%;
+
     background: #5271ff;
 
     border: 4px solid white;
 
+    box-shadow:
+        0 0 0 5px rgba(82, 113, 255, 0.2);
+}
+
+.stop-marker {
+    width: 16px;
+    height: 16px;
+
     border-radius: 50%;
 
+    background: #5271ff;
+
+    border: 3px solid white;
+
     box-shadow:
-        0 0 0 8px rgba(82, 113, 255, 0.25);
+        0 3px 10px rgba(0, 0, 0, 0.45);
 }
 
 
 /* ========================================
-   PAINEL DE ÔNIBUS
+   PAINEL
 ======================================== */
 
-.bus-panel {
+.painel-ponto {
     position: fixed;
 
-    left: 0;
-    bottom: 0;
+    top: 0;
+    right: 0;
 
-    width: 100%;
+    width: 390px;
+    max-width: 94vw;
+    height: 100vh;
 
-    height: 33vh;
+    z-index: 1000;
 
-    min-height: 270px;
-
-    z-index: 2000;
-
-    background: #111827;
-
-    color: white;
-
-    border-radius: 24px 24px 0 0;
-
-    padding: 25px 28px 20px;
+    background: #0d1726;
 
     box-shadow:
-        0 -8px 35px rgba(0, 0, 0, 0.45);
+        -15px 0 40px rgba(0, 0, 0, 0.38);
 
-    transform: translateY(110%);
+    transform: translateX(105%);
 
     transition:
-        transform 0.3s ease;
+        transform 0.25s ease;
 
     overflow-y: auto;
 }
 
-
-.bus-panel.open {
-    transform: translateY(0);
+.painel-ponto.aberto {
+    transform: translateX(0);
 }
 
-
-/* ========================================
-   ALÇA DO PAINEL
-======================================== */
-
-.panel-handle {
-    position: absolute;
-
-    top: 9px;
-    left: 50%;
-
-    transform: translateX(-50%);
-
-    width: 45px;
-    height: 5px;
-
-    border-radius: 10px;
-
-    background: #4b5563;
+.painel-conteudo {
+    padding: 70px 22px 30px;
 }
 
-
-/* ========================================
-   BOTÃO FECHAR
-======================================== */
-
-.close-button {
+.fechar-painel {
     position: absolute;
 
-    right: 20px;
-    top: 20px;
+    top: 18px;
+    right: 18px;
 
     width: 38px;
     height: 38px;
 
-    border: none;
-
+    border: 0;
     border-radius: 50%;
 
-    background: #1f2937;
+    background: #1a2738;
 
     color: white;
 
     font-size: 25px;
 
     cursor: pointer;
-
-    transition: 0.2s;
 }
 
+.painel-etiqueta,
+.modal-etiqueta {
+    color: #7184a1;
 
-.close-button:hover {
-    background: #374151;
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
 }
 
+.painel-ponto h2 {
+    margin:
+        8px 0 8px;
 
-/* ========================================
-   CABEÇALHO DO PONTO
-======================================== */
-
-.panel-header {
-    padding-right: 55px;
+    font-size: 24px;
 }
 
+.painel-ponto p {
+    margin: 0;
 
-.stop-name {
-    font-size: 23px;
+    color: #9ba7b7;
 
-    font-weight: bold;
+    line-height: 1.5;
 }
 
-
-.stop-distance {
-    margin-top: 5px;
-
-    color: #9ca3af;
-
-    font-size: 14px;
-}
-
-
-/* ========================================
-   TÍTULO DOS ÔNIBUS
-======================================== */
-
-.arrivals-title {
-    margin-top: 22px;
-
-    margin-bottom: 10px;
-
-    font-size: 15px;
-
-    color: #9ca3af;
-}
-
-
-/* ========================================
-   LISTA DE ÔNIBUS
-======================================== */
-
-.arrivals {
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            auto-fit,
-            minmax(220px, 1fr)
-        );
-
-    gap: 10px;
-}
-
-
-/* ========================================
-   CARD DE ÔNIBUS
-======================================== */
-
-.arrival-card {
-    background: #1f2937;
-
-    border:
-        1px solid
-        #374151;
-
-    border-radius: 14px;
-
-    padding: 15px;
-
-    transition:
-        border-color 0.2s,
-        transform 0.2s;
-}
-
-
-.arrival-card:hover {
-    border-color: #5271ff;
-
-    transform: translateY(-2px);
-}
-
-
-/* ========================================
-   LINHA + TEMPO
-======================================== */
-
-.arrival-top {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-}
-
-
-.line-number {
-    font-size: 20px;
-
-    font-weight: bold;
-}
-
-
-.arrival-time {
-    color: #72e06a;
-
-    font-weight: bold;
+.painel-ponto h3 {
+    margin:
+        20px 0 15px;
 
     font-size: 17px;
 }
 
+.separador {
+    height: 1px;
 
-/* ========================================
-   DESTINO
-======================================== */
+    margin: 20px 0;
 
-.destination {
-    margin-top: 6px;
+    background:
+        rgba(255, 255, 255, 0.08);
+}
 
-    color: #d1d5db;
+.carregando {
+    padding: 20px 0;
 
-    font-size: 14px;
+    text-align: center;
+
+    color: #8793a5;
 }
 
 
 /* ========================================
-   HORÁRIO
+   CARDS DAS LINHAS
 ======================================== */
 
-.arrival-status {
-    margin-top: 8px;
+.linha-onibus-card {
+    margin-bottom: 15px;
 
-    color: #9ca3af;
+    padding: 16px;
+
+    border-radius: 18px;
+
+    background: #162232;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.07);
+}
+
+.linha-cabecalho {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 12px;
+}
+
+.linha-numero {
+    color: white;
+
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.linha-destino {
+    margin-top: 5px;
+
+    color: #a6b0bf;
+
+    font-size: 13px;
+}
+
+.linha-qtd {
+    color: #7e8999;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+.linha-avaliacao-resumo {
+    display: flex;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 12px;
+}
+
+.estrelas-pequenas {
+    color: #ffc83d;
+
+    letter-spacing: 1px;
+
+    font-size: 15px;
+}
+
+.nota-media {
+    font-weight: 800;
+
+    font-size: 13px;
+}
+
+.quantidade-avaliacoes {
+    color: #7f8998;
 
     font-size: 12px;
 }
 
-
-/* ========================================
-   AVISO DOS DADOS SIMULADOS
-======================================== */
-
-.simulation-warning {
+.titulo-previsoes {
     margin-top: 15px;
 
-    color: #6b7280;
+    color: #7e8999;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+.previsao-item {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 9px;
+
+    padding: 11px 12px;
+
+    border-radius: 11px;
+
+    background: #0e1724;
+}
+
+.previsao-horario {
+    color: white;
+
+    font-weight: 750;
+}
+
+.previsao-label {
+    margin-top: 3px;
+
+    color: #718095;
 
     font-size: 11px;
 }
 
+.previsao-minutos {
+    color: #62db72;
+
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.acoes-linha {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+
+    margin-top: 14px;
+}
+
+.botao-avaliar,
+.botao-reviews {
+    min-height: 42px;
+
+    border-radius: 11px;
+
+    cursor: pointer;
+
+    font-weight: 800;
+
+    font-size: 12px;
+}
+
+.botao-avaliar {
+    border: 0;
+
+    background: #5271ff;
+
+    color: white;
+}
+
+.botao-reviews {
+    border:
+        1px solid rgba(255, 255, 255, 0.13);
+
+    background: transparent;
+
+    color: #d9dfeb;
+}
+
 
 /* ========================================
-   POPUP DO LEAFLET
+   MODAIS
 ======================================== */
 
-.leaflet-popup-content-wrapper {
-    background: #1f2937;
+.modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 18px;
+
+    background:
+        rgba(0, 0, 0, 0.67);
+
+    backdrop-filter: blur(5px);
+}
+
+.modal.oculto {
+    display: none;
+}
+
+.modal-caixa {
+    width: 100%;
+    max-width: 470px;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    padding: 22px;
+
+    border-radius: 22px;
+
+    background: #101b2a;
+
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.5);
+}
+
+.modal-reviews {
+    max-width: 550px;
+}
+
+.modal-topo {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 15px;
+}
+
+.modal-topo h2 {
+    margin:
+        6px 0 3px;
+
+    font-size: 22px;
+}
+
+.modal-topo p {
+    margin: 0;
+
+    color: #8c98aa;
+
+    font-size: 13px;
+}
+
+.modal-fechar {
+    flex-shrink: 0;
+
+    width: 38px;
+    height: 38px;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: #1b293b;
 
     color: white;
 
-    border-radius: 12px;
-}
+    cursor: pointer;
 
-
-.leaflet-popup-tip {
-    background: #1f2937;
-}
-
-
-.leaflet-popup-content {
-    margin: 12px;
-
-    font-size: 14px;
+    font-size: 25px;
 }
 
 
 /* ========================================
-   RESPONSIVIDADE
+   ESTRELAS AVALIAÇÃO
+======================================== */
+
+.avaliacao-pergunta {
+    margin-top: 24px;
+
+    font-weight: 750;
+}
+
+.estrelas-grandes {
+    display: flex;
+
+    gap: 5px;
+
+    margin:
+        10px 0 22px;
+}
+
+.estrelas-grandes button {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #3f4c5e;
+
+    cursor: pointer;
+
+    font-size: 38px;
+
+    transition:
+        transform 0.12s ease,
+        color 0.12s ease;
+}
+
+.estrelas-grandes button:hover {
+    transform: scale(1.08);
+}
+
+.estrelas-grandes button.ativa {
+    color: #ffc83d;
+}
+
+
+/* ========================================
+   CAMPOS
+======================================== */
+
+.campo-grupo {
+    margin-top: 15px;
+}
+
+.campo-grupo label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #bac3cf;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.campo-grupo select,
+.campo-grupo textarea {
+    width: 100%;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.08);
+
+    outline: none;
+
+    border-radius: 12px;
+
+    background: #182536;
+
+    color: white;
+}
+
+.campo-grupo select {
+    height: 46px;
+
+    padding:
+        0 12px;
+}
+
+.campo-grupo textarea {
+    min-height: 115px;
+
+    padding: 13px;
+
+    resize: vertical;
+}
+
+.campo-grupo select:focus,
+.campo-grupo textarea:focus {
+    border-color: #5271ff;
+}
+
+.botao-principal {
+    width: 100%;
+
+    min-height: 48px;
+
+    margin-top: 20px;
+
+    border: 0;
+    border-radius: 12px;
+
+    background: #5271ff;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-weight: 850;
+}
+
+
+/* ========================================
+   RESUMO REVIEWS
+======================================== */
+
+.reviews-resumo {
+    display: grid;
+
+    grid-template-columns:
+        140px 1fr;
+
+    gap: 20px;
+
+    margin-top: 22px;
+
+    padding: 17px;
+
+    border-radius: 16px;
+
+    background: #172435;
+}
+
+.reviews-nota-grande {
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+.reviews-nota-grande strong {
+    font-size: 38px;
+}
+
+.estrelas-resumo {
+    margin-top: 3px;
+
+    color: #ffc83d;
+
+    letter-spacing: 1px;
+}
+
+.reviews-nota-grande span {
+    margin-top: 5px;
+
+    color: #8d99aa;
+
+    font-size: 11px;
+}
+
+.reviews-distribuicao {
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 5px;
+}
+
+.distribuicao-linha {
+    display: grid;
+
+    grid-template-columns:
+        30px 1fr 26px;
+
+    align-items: center;
+
+    gap: 7px;
+
+    font-size: 11px;
+
+    color: #9faaba;
+}
+
+.distribuicao-barra {
+    height: 7px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    background: #263548;
+}
+
+.distribuicao-preenchimento {
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: #ffc83d;
+}
+
+
+/* ========================================
+   FILTROS
+======================================== */
+
+.filtros-reviews {
+    display: flex;
+
+    gap: 7px;
+
+    margin:
+        17px 0;
+
+    overflow-x: auto;
+
+    padding-bottom: 3px;
+}
+
+.filtros-reviews button {
+    flex-shrink: 0;
+
+    padding:
+        8px 11px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.09);
+
+    border-radius: 9px;
+
+    background: #182536;
+
+    color: #b9c2ce;
+
+    cursor: pointer;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.filtros-reviews button.ativo {
+    border-color: #5271ff;
+
+    background:
+        rgba(82, 113, 255, 0.16);
+
+    color: #9cb0ff;
+}
+
+
+/* ========================================
+   REVIEW INDIVIDUAL
+======================================== */
+
+.review-item {
+    padding:
+        16px 0;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.07);
+}
+
+.review-topo {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+.review-estrelas {
+    color: #ffc83d;
+
+    font-size: 16px;
+
+    letter-spacing: 1px;
+}
+
+.review-data {
+    color: #68778b;
+
+    font-size: 10px;
+}
+
+.review-comentario {
+    margin-top: 9px;
+
+    color: #d7dce5;
+
+    font-size: 13px;
+
+    line-height: 1.55;
+
+    white-space: pre-wrap;
+}
+
+.review-tags {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 10px;
+}
+
+.review-tag {
+    padding:
+        5px 8px;
+
+    border-radius: 7px;
+
+    background: #1a293c;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+}
+
+.sem-reviews {
+    padding:
+        35px 15px;
+
+    text-align: center;
+
+    color: #8390a2;
+}
+
+.sem-reviews strong {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: white;
+}
+
+
+/* ========================================
+   MOBILE
 ======================================== */
 
 @media (max-width: 600px) {
 
     .logo {
         top: 12px;
-
         left: 12px;
 
-        font-size: 17px;
+        padding:
+            9px 11px;
+
+        font-size: 13px;
     }
 
+    .logo-icone {
+        width: 27px;
+        height: 27px;
+    }
 
     .radius-info {
         top: 12px;
-
         right: 12px;
 
-        font-size: 11px;
-    }
-
-
-    .bus-panel {
-        height: 38vh;
-
-        min-height: 280px;
-
         padding:
-            24px 17px 15px;
+            9px 10px;
+
+        font-size: 10px;
     }
-
-
-    .stop-name {
-        font-size: 20px;
-    }
-
-
-    .arrivals {
-        grid-template-columns: 1fr;
-    }
-
 
     .location-button {
         right: 14px;
-
         bottom: 18px;
+    }
+
+    .painel-ponto {
+        top: auto;
+        bottom: 0;
+
+        width: 100%;
+        max-width: none;
+
+        height: 72vh;
+
+        border-radius:
+            24px 24px 0 0;
+
+        transform:
+            translateY(105%);
+    }
+
+    .painel-ponto.aberto {
+        transform:
+            translateY(0);
+    }
+
+    .painel-conteudo {
+        padding:
+            58px 17px 28px;
+    }
+
+    .painel-ponto h2 {
+        font-size: 20px;
+    }
+
+    .modal {
+        align-items: flex-end;
+
+        padding: 0;
+    }
+
+    .modal-caixa {
+        max-height: 92vh;
+
+        border-radius:
+            22px 22px 0 0;
+
+        padding:
+            20px 17px 25px;
+    }
+
+    .reviews-resumo {
+        grid-template-columns:
+            115px 1fr;
+
+        gap: 12px;
+
+        padding: 14px;
+    }
+
+    .reviews-nota-grande strong {
+        font-size: 33px;
+    }
+
+    .acoes-linha {
+        grid-template-columns: 1fr;
     }
 
 }
