@@ -12,7 +12,6 @@
 
     <title>BusReview</title>
 
-    <!-- LEAFLET -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -28,102 +27,428 @@
 <body>
 
 
-    <!-- ===================================== -->
-    <!-- MAPA -->
-    <!-- ===================================== -->
+    <!-- ========================================
+         TOPO
+    ======================================== -->
 
-    <div id="map"></div>
+    <header class="topo">
 
-
-    <!-- ===================================== -->
-    <!-- LOGO -->
-    <!-- ===================================== -->
-
-    <div class="logo">
-
-        <div class="logo-icone">
-            🚌
+        <div class="marca">
+            <span>Bus</span>Review
         </div>
 
-        <div>
-            BusReview
-        </div>
 
-    </div>
+        <button
+            class="botao-menu"
+            type="button"
+            onclick="abrirMenu()"
+            aria-label="Abrir menu"
+        >
+            ☰
+        </button>
 
-
-    <!-- ===================================== -->
-    <!-- RAIO -->
-    <!-- ===================================== -->
-
-    <div class="radius-info">
-
-        <span class="location-dot"></span>
-
-        Pontos em até 2 km
-
-    </div>
+    </header>
 
 
-    <!-- ===================================== -->
-    <!-- LOCALIZAÇÃO -->
-    <!-- ===================================== -->
+    <!-- ========================================
+         LOCALIZAÇÃO
+    ======================================== -->
 
     <button
-        id="locationButton"
-        class="location-button"
+        class="botao-localizacao"
         type="button"
         onclick="centralizarUsuario()"
-        aria-label="Centralizar na minha localização"
+        aria-label="Minha localização"
     >
         📍
     </button>
 
 
-    <!-- ===================================== -->
-    <!-- PAINEL DO PONTO -->
-    <!-- ===================================== -->
+    <!-- ========================================
+         FUNDO MENU
+    ======================================== -->
+
+    <div
+        id="menu-fundo"
+        class="menu-fundo oculto"
+        onclick="fecharMenu()"
+    ></div>
+
+
+    <!-- ========================================
+         MENU
+    ======================================== -->
 
     <aside
-        id="painel-ponto"
-        class="painel-ponto"
+        id="menu-lateral"
+        class="menu-lateral"
     >
 
+        <div class="menu-cabecalho">
+
+            <div>
+
+                <div class="menu-logo">
+                    <span>Bus</span>Review
+                </div>
+
+                <small>
+                    Mobilidade mais fácil
+                </small>
+
+            </div>
+
+
+            <button
+                class="menu-fechar"
+                type="button"
+                onclick="fecharMenu()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- LUGARES -->
+
+        <div class="menu-titulo">
+            MEUS LUGARES
+        </div>
+
+
+        <div id="lista-lugares-menu"></div>
+
+
         <button
-            class="fechar-painel"
+            class="botao-adicionar-lugar"
             type="button"
-            onclick="fecharPainelPonto()"
+            onclick="abrirModalNovoLugar()"
         >
-            ×
+            ＋ Adicionar lugar
         </button>
 
 
-        <div class="painel-conteudo">
+        <div class="menu-divisor"></div>
 
-            <div class="painel-etiqueta">
-                PONTO DE ÔNIBUS
+
+        <!-- NAVEGAÇÃO -->
+
+        <div class="menu-titulo">
+            NAVEGAÇÃO
+        </div>
+
+
+        <button
+            class="menu-item-simples"
+            type="button"
+            onclick="centralizarUsuario(); fecharMenu();"
+        >
+            <span>📍</span>
+
+            <div>
+                <strong>Minha localização</strong>
+                <small>Voltar para onde estou</small>
+            </div>
+        </button>
+
+
+        <button
+            class="menu-item-simples"
+            type="button"
+            onclick="criarPontosPerto(); fecharMenu();"
+        >
+            <span>🚏</span>
+
+            <div>
+                <strong>Pontos próximos</strong>
+                <small>Ver paradas próximas</small>
+            </div>
+        </button>
+
+
+        <div class="menu-divisor"></div>
+
+
+        <!-- RECLAMAÇÕES -->
+
+        <div class="menu-titulo">
+            QUALIDADE DO SERVIÇO
+        </div>
+
+
+        <button
+            class="menu-item-simples"
+            type="button"
+            onclick="abrirMinhasReclamacoes()"
+        >
+
+            <span>⚠️</span>
+
+            <div>
+
+                <strong>
+                    Minhas reclamações
+
+                    <span
+                        id="contador-reclamacoes"
+                        class="contador-reclamacoes oculto"
+                    ></span>
+                </strong>
+
+                <small>
+                    Protocolos e acompanhamento
+                </small>
+
             </div>
 
-            <h2 id="painel-nome-ponto">
-                Ponto de ônibus
+        </button>
+
+
+        <button
+            class="menu-item-simples"
+            type="button"
+            onclick="abrirSP156Servicos()"
+        >
+            <span>🏛️</span>
+
+            <div>
+                <strong>Portal SP156</strong>
+                <small>Atendimento oficial</small>
+            </div>
+        </button>
+
+    </aside>
+
+
+    <!-- ========================================
+         MAPA
+    ======================================== -->
+
+    <main id="map"></main>
+
+
+    <!-- ========================================
+         AVISO MARCAR LUGAR
+    ======================================== -->
+
+    <div
+        id="aviso-marcar-lugar"
+        class="aviso-mapa oculto"
+    >
+
+        <div>
+
+            <strong>
+                📍 Marque o local
+            </strong>
+
+            <small>
+                Toque no mapa onde fica esse lugar.
+            </small>
+
+        </div>
+
+
+        <button
+            type="button"
+            onclick="cancelarMarcacaoLugar()"
+        >
+            Cancelar
+        </button>
+
+    </div>
+
+
+    <!-- ========================================
+         MODAL NOVO LUGAR
+    ======================================== -->
+
+    <div
+        id="modalLugar"
+        class="modal-fundo oculto"
+    >
+
+        <div class="modal">
+
+            <button
+                class="modal-fechar"
+                type="button"
+                onclick="fecharModalLugar()"
+            >
+                ×
+            </button>
+
+
+            <h2 id="tituloModalLugar">
+                Adicionar lugar
             </h2>
 
-            <p id="painel-endereco-ponto">
-                Endereço
+
+            <p>
+                Crie um destino para encontrá-lo rapidamente.
             </p>
 
-            <div class="separador"></div>
 
-            <h3>
-                Linhas neste ponto
-            </h3>
+            <label>
 
-            <div id="lista-linhas-ponto">
+                Ícone
 
-                <div class="carregando">
-                    Buscando linhas...
-                </div>
+                <select id="iconeLugar">
 
+                    <option value="📍">📍 Local</option>
+                    <option value="🏠">🏠 Casa</option>
+                    <option value="🏫">🏫 Escola</option>
+                    <option value="💼">💼 Trabalho</option>
+                    <option value="⚽">⚽ Treino</option>
+                    <option value="⭐">⭐ Favorito</option>
+                    <option value="🏥">🏥 Hospital</option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Nome do lugar
+
+                <input
+                    id="nomeLugar"
+                    type="text"
+                    placeholder="Ex: Casa"
+                >
+
+            </label>
+
+
+            <label>
+
+                Endereço
+
+                <input
+                    id="enderecoLugar"
+                    type="text"
+                    placeholder="Ex: Rua Exemplo, 123"
+                >
+
+            </label>
+
+
+            <button
+                class="botao-secundario botao-largura-total"
+                type="button"
+                onclick="buscarEnderecoLugar()"
+            >
+                🔎 Buscar endereço
+            </button>
+
+
+            <div
+                id="statusBuscaEndereco"
+                class="status-endereco"
+            ></div>
+
+
+            <div class="ou">
+                ou
+            </div>
+
+
+            <div class="botoes-local-lugar">
+
+                <button
+                    class="botao-secundario"
+                    type="button"
+                    onclick="marcarLugarNoMapa()"
+                >
+                    📍 Marcar no mapa
+                </button>
+
+
+                <button
+                    class="botao-secundario"
+                    type="button"
+                    onclick="usarMinhaLocalizacaoNoLugar()"
+                >
+                    ◎ Usar onde estou
+                </button>
+
+            </div>
+
+
+            <div
+                id="coordenadasLugar"
+                class="coordenadas-lugar"
+            >
+                Nenhuma localização definida ainda.
+            </div>
+
+
+            <button
+                class="botao-principal"
+                type="button"
+                onclick="salvarLugarAtual()"
+            >
+                Salvar lugar
+            </button>
+
+
+            <button
+                id="botaoExcluirLugar"
+                class="botao-excluir oculto"
+                type="button"
+                onclick="excluirLugarAtual()"
+            >
+                Excluir lugar
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================
+         PAINEL ROTA
+    ======================================== -->
+
+    <aside
+        id="painel-rota"
+        class="painel-lateral oculto"
+    >
+
+        <div class="painel-topo">
+
+            <div>
+
+                <small class="painel-label">
+                    IR PARA
+                </small>
+
+                <h2 id="rota-destino-nome">
+                    Destino
+                </h2>
+
+                <p id="rota-destino-endereco"></p>
+
+            </div>
+
+
+            <button
+                class="botao-fechar"
+                type="button"
+                onclick="fecharPainelRota()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div id="lista-rotas">
+
+            <div class="carregando">
+                Procurando opções...
             </div>
 
         </div>
@@ -131,169 +456,378 @@
     </aside>
 
 
-    <!-- ===================================== -->
-    <!-- MODAL: AVALIAR LINHA -->
-    <!-- ===================================== -->
+    <!-- ========================================
+         PAINEL PONTO
+    ======================================== -->
 
-    <div
-        id="modalAvaliacao"
-        class="modal oculto"
+    <aside
+        id="painel-ponto"
+        class="painel-lateral oculto"
     >
 
-        <div class="modal-caixa">
+        <div class="painel-topo">
 
-            <div class="modal-topo">
+            <div>
 
-                <div>
+                <small class="painel-label">
+                    PONTO
+                </small>
 
-                    <div class="modal-etiqueta">
-                        SUA EXPERIÊNCIA
-                    </div>
+                <h2 id="painel-nome-ponto">
+                    Ponto de ônibus
+                </h2>
 
-                    <h2 id="tituloAvaliacao">
-                        Avaliar linha
-                    </h2>
-
-                    <p id="subtituloAvaliacao">
-                        Ponto de ônibus
-                    </p>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="modal-fechar"
-                    onclick="fecharModalAvaliacao()"
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            <div class="avaliacao-pergunta">
-                Qual sua nota?
-            </div>
-
-
-            <div
-                id="estrelasAvaliacao"
-                class="estrelas-grandes"
-            >
-
-                <button
-                    type="button"
-                    onclick="definirNota(1)"
-                >
-                    ★
-                </button>
-
-                <button
-                    type="button"
-                    onclick="definirNota(2)"
-                >
-                    ★
-                </button>
-
-                <button
-                    type="button"
-                    onclick="definirNota(3)"
-                >
-                    ★
-                </button>
-
-                <button
-                    type="button"
-                    onclick="definirNota(4)"
-                >
-                    ★
-                </button>
-
-                <button
-                    type="button"
-                    onclick="definirNota(5)"
-                >
-                    ★
-                </button>
-
-            </div>
-
-
-            <div class="campo-grupo">
-
-                <label for="lotacaoAvaliacao">
-                    Como estava a lotação?
-                </label>
-
-                <select id="lotacaoAvaliacao">
-
-                    <option value="">
-                        Não informar
-                    </option>
-
-                    <option value="Baixa">
-                        Baixa
-                    </option>
-
-                    <option value="Média">
-                        Média
-                    </option>
-
-                    <option value="Alta">
-                        Alta
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="campo-grupo">
-
-                <label for="atrasoAvaliacao">
-                    Houve atraso?
-                </label>
-
-                <select id="atrasoAvaliacao">
-
-                    <option value="">
-                        Não sei
-                    </option>
-
-                    <option value="Não">
-                        Não
-                    </option>
-
-                    <option value="Sim">
-                        Sim
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="campo-grupo">
-
-                <label for="textoAvaliacao">
-                    Conte como foi sua experiência
-                </label>
-
-                <textarea
-                    id="textoAvaliacao"
-                    maxlength="500"
-                    placeholder="Ex.: A linha chegou no horário, mas estava muito cheia..."
-                ></textarea>
+                <p id="painel-endereco-ponto"></p>
 
             </div>
 
 
             <button
+                class="botao-fechar"
                 type="button"
+                onclick="fecharPainelPonto()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div id="lista-linhas-ponto"></div>
+
+    </aside>
+
+
+    <!-- ========================================
+         MODAL RECLAMAÇÃO
+    ======================================== -->
+
+    <div
+        id="modalReclamacao"
+        class="modal-fundo oculto"
+    >
+
+        <div class="modal modal-reclamacao">
+
+            <button
+                class="modal-fechar"
+                type="button"
+                onclick="fecharModalReclamacao()"
+            >
+                ×
+            </button>
+
+
+            <div class="reclamacao-titulo-icone">
+                ⚠️
+            </div>
+
+
+            <h2>
+                Reclamar desta linha
+            </h2>
+
+
+            <div
+                id="reclamacaoLinha"
+                class="reclamacao-linha"
+            >
+                Linha
+            </div>
+
+
+            <div class="aviso-oficial">
+
+                <strong>
+                    BusReview + SP156
+                </strong>
+
+                <p>
+                    Você preenche a reclamação aqui.
+                    Depois, o BusReview abre o SP156
+                    para você concluir o protocolo oficial.
+                </p>
+
+            </div>
+
+
+            <label>
+
+                Qual foi o problema?
+
+                <select id="reclamacaoTipo">
+
+                    <option value="">
+                        Selecione
+                    </option>
+
+                    <option value="Intervalo excessivo">
+                        Intervalo excessivo
+                    </option>
+
+                    <option value="Ônibus não parou no ponto">
+                        Ônibus não parou no ponto
+                    </option>
+
+                    <option value="Partida não realizada">
+                        Partida não realizada
+                    </option>
+
+                    <option value="Atraso">
+                        Atraso
+                    </option>
+
+                    <option value="Superlotação">
+                        Superlotação
+                    </option>
+
+                    <option value="Condução inadequada">
+                        Condução inadequada
+                    </option>
+
+                    <option value="Comportamento do motorista">
+                        Comportamento do motorista
+                    </option>
+
+                    <option value="Problema de acessibilidade">
+                        Problema de acessibilidade
+                    </option>
+
+                    <option value="Limpeza ou conservação">
+                        Limpeza ou conservação
+                    </option>
+
+                    <option value="Outro">
+                        Outro
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <div class="campos-duplos">
+
+                <label>
+
+                    Data
+
+                    <input
+                        id="reclamacaoData"
+                        type="date"
+                    >
+
+                </label>
+
+
+                <label>
+
+                    Horário
+
+                    <input
+                        id="reclamacaoHora"
+                        type="time"
+                    >
+
+                </label>
+
+            </div>
+
+
+            <label>
+
+                Local / ponto
+
+                <input
+                    id="reclamacaoPonto"
+                    type="text"
+                    placeholder="Onde aconteceu?"
+                >
+
+            </label>
+
+
+            <label>
+
+                Prefixo do ônibus
+
+                <input
+                    id="reclamacaoPrefixo"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Se você souber"
+                >
+
+                <small class="ajuda-campo">
+                    Só aparece na reclamação.
+                    Não será mostrado nos cards dos ônibus.
+                </small>
+
+            </label>
+
+
+            <label>
+
+                Descreva o que aconteceu
+
+                <textarea
+                    id="reclamacaoDescricao"
+                    placeholder="Conte com detalhes o que aconteceu..."
+                ></textarea>
+
+            </label>
+
+
+            <button
                 class="botao-principal"
+                type="button"
+                onclick="continuarNoSP156()"
+            >
+                Continuar no SP156
+            </button>
+
+
+            <small class="texto-explicativo">
+                Sua reclamação será salva no BusReview.
+                O envio oficial só é concluído quando você
+                finalizar a solicitação no SP156.
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================
+         MINHAS RECLAMAÇÕES
+    ======================================== -->
+
+    <div
+        id="modalMinhasReclamacoes"
+        class="modal-fundo oculto"
+    >
+
+        <div class="modal modal-grande">
+
+            <button
+                class="modal-fechar"
+                type="button"
+                onclick="fecharMinhasReclamacoes()"
+            >
+                ×
+            </button>
+
+
+            <h2>
+                Minhas reclamações
+            </h2>
+
+
+            <p>
+                Guarde os protocolos do SP156
+                e acompanhe suas solicitações.
+            </p>
+
+
+            <div id="listaMinhasReclamacoes"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================
+         MODAL AVALIAÇÃO
+    ======================================== -->
+
+    <div
+        id="modalAvaliacao"
+        class="modal-fundo oculto"
+    >
+
+        <div class="modal">
+
+            <button
+                class="modal-fechar"
+                type="button"
+                onclick="fecharModalAvaliacao()"
+            >
+                ×
+            </button>
+
+
+            <h2 id="tituloAvaliacao">
+                Avaliar linha
+            </h2>
+
+            <p id="subtituloAvaliacao"></p>
+
+
+            <div
+                id="estrelasAvaliacao"
+                class="estrelas-avaliacao"
+            >
+
+                <button type="button" onclick="definirNota(1)">★</button>
+                <button type="button" onclick="definirNota(2)">★</button>
+                <button type="button" onclick="definirNota(3)">★</button>
+                <button type="button" onclick="definirNota(4)">★</button>
+                <button type="button" onclick="definirNota(5)">★</button>
+
+            </div>
+
+
+            <label>
+
+                Lotação
+
+                <select id="lotacaoAvaliacao">
+
+                    <option value="">Não informar</option>
+                    <option value="Vazio">Vazio</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Cheio">Cheio</option>
+                    <option value="Muito cheio">Muito cheio</option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Atraso
+
+                <select id="atrasoAvaliacao">
+
+                    <option value="">Não informar</option>
+                    <option value="No horário">No horário</option>
+                    <option value="Pouco atrasado">Pouco atrasado</option>
+                    <option value="Muito atrasado">Muito atrasado</option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Comentário
+
+                <textarea
+                    id="textoAvaliacao"
+                    placeholder="Como foi sua experiência?"
+                ></textarea>
+
+            </label>
+
+
+            <button
+                class="botao-principal"
+                type="button"
                 onclick="enviarAvaliacao()"
             >
-                Enviar avaliação
+                Publicar avaliação
             </button>
 
         </div>
@@ -301,75 +835,50 @@
     </div>
 
 
-    <!-- ===================================== -->
-    <!-- MODAL: VER AVALIAÇÕES -->
-    <!-- ===================================== -->
+    <!-- ========================================
+         REVIEWS
+    ======================================== -->
 
     <div
         id="modalReviews"
-        class="modal oculto"
+        class="modal-fundo oculto"
     >
 
-        <div class="modal-caixa modal-reviews">
+        <div class="modal">
 
-            <div class="modal-topo">
-
-                <div>
-
-                    <div class="modal-etiqueta">
-                        AVALIAÇÕES DOS PASSAGEIROS
-                    </div>
-
-                    <h2 id="tituloReviews">
-                        Avaliações
-                    </h2>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="modal-fechar"
-                    onclick="fecharModalReviews()"
-                >
-                    ×
-                </button>
-
-            </div>
+            <button
+                class="modal-fechar"
+                type="button"
+                onclick="fecharModalReviews()"
+            >
+                ×
+            </button>
 
 
-            <!-- RESUMO -->
+            <h2 id="tituloReviews">
+                Avaliações
+            </h2>
+
 
             <div class="reviews-resumo">
 
-                <div class="reviews-nota-grande">
+                <strong id="reviewsMedia">
+                    0,0
+                </strong>
 
-                    <strong id="reviewsMedia">
-                        0,0
-                    </strong>
-
-                    <div
-                        id="reviewsEstrelasMedia"
-                        class="estrelas-resumo"
-                    >
-                        ☆☆☆☆☆
-                    </div>
-
-                    <span id="reviewsQuantidade">
-                        0 avaliações
-                    </span>
-
+                <div id="reviewsEstrelasMedia">
+                    ☆☆☆☆☆
                 </div>
 
-
-                <div
-                    id="reviewsDistribuicao"
-                    class="reviews-distribuicao"
-                ></div>
+                <span id="reviewsQuantidade">
+                    0 avaliações
+                </span>
 
             </div>
 
 
-            <!-- FILTROS -->
+            <div id="reviewsDistribuicao"></div>
+
 
             <div
                 id="filtrosReviews"
@@ -377,7 +886,6 @@
             >
 
                 <button
-                    type="button"
                     class="ativo"
                     data-nota="0"
                     onclick="filtrarReviews(0)"
@@ -385,60 +893,24 @@
                     Todas
                 </button>
 
-                <button
-                    type="button"
-                    data-nota="5"
-                    onclick="filtrarReviews(5)"
-                >
-                    5 ★
-                </button>
-
-                <button
-                    type="button"
-                    data-nota="4"
-                    onclick="filtrarReviews(4)"
-                >
-                    4 ★
-                </button>
-
-                <button
-                    type="button"
-                    data-nota="3"
-                    onclick="filtrarReviews(3)"
-                >
-                    3 ★
-                </button>
-
-                <button
-                    type="button"
-                    data-nota="2"
-                    onclick="filtrarReviews(2)"
-                >
-                    2 ★
-                </button>
-
-                <button
-                    type="button"
-                    data-nota="1"
-                    onclick="filtrarReviews(1)"
-                >
-                    1 ★
-                </button>
+                <button data-nota="5" onclick="filtrarReviews(5)">5★</button>
+                <button data-nota="4" onclick="filtrarReviews(4)">4★</button>
+                <button data-nota="3" onclick="filtrarReviews(3)">3★</button>
+                <button data-nota="2" onclick="filtrarReviews(2)">2★</button>
+                <button data-nota="1" onclick="filtrarReviews(1)">1★</button>
 
             </div>
 
-
-            <!-- LISTA -->
 
             <div id="listaReviews"></div>
 
 
             <button
-                type="button"
                 class="botao-principal"
+                type="button"
                 onclick="avaliarPeloModalReviews()"
             >
-                Avaliar esta linha
+                Avaliar este ônibus
             </button>
 
         </div>
@@ -446,14 +918,9 @@
     </div>
 
 
-    <!-- LEAFLET -->
-
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
-
-
-    <!-- BUSREVIEW -->
 
     <script src="app.js"></script>
 

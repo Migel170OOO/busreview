@@ -1,13 +1,31 @@
-// ========================================
+// ============================================================
 // BUSREVIEW
-// ========================================
+// VERSÃO SEM RECLAMAÇÕES — SOMENTE AVALIAÇÕES
+// ============================================================
 
 
-// ========================================
-// CONFIGURAÇÃO
-// ========================================
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
 
 const RAIO_KM = 2;
+
+const RAIO_ORIGEM_ROTA_M = 800;
+const RAIO_DESTINO_ROTA_M = 800;
+
+const MAX_PARADAS_ORIGEM = 8;
+const MAX_PARADAS_DESTINO = 12;
+
+const LIMITE_VERDE_MIN = 19;
+const LIMITE_PREVISAO_MIN = 40;
+
+const INTERVALO_ATUALIZACAO_MS = 20000;
+const TEMPO_AMARELO_MS = 60000;
+
+
+// ============================================================
+// ESTADO
+// ============================================================
 
 let usuarioLat = null;
 let usuarioLon = null;
@@ -16,6 +34,31 @@ let usuarioMarker = null;
 let raioCircle = null;
 
 let pontosMarkers = [];
+
+let pontoAbertoAtual = null;
+let pontoAbertoIdAtual = null;
+
+let timerAtualizacaoPonto = null;
+
+
+// ============================================================
+// LUGARES
+// ============================================================
+
+let lugarEmEdicaoId = null;
+
+let modoMarcarLugar = false;
+
+let lugarLatTemporario = null;
+let lugarLonTemporario = null;
+
+let marcadorLugarTemporario = null;
+let marcadorDestino = null;
+
+
+// ============================================================
+// AVALIAÇÕES
+// ============================================================
 
 let notaAtual = 0;
 
@@ -28,14 +71,30 @@ let pontoReviewsAtual = null;
 let filtroReviewsAtual = 0;
 
 
-// ========================================
-// MAPA
-// ========================================
+// ============================================================
+// CACHE / PREVISÕES
+// ============================================================
 
-const map = L.map("map").setView(
-    [-23.5505, -46.6333],
-    14
-);
+const historicoPrevisoes =
+    new Map();
+
+const cacheLinhasParada =
+    new Map();
+
+
+// ============================================================
+// MAPA
+// ============================================================
+
+const map =
+    L.map("map")
+        .setView(
+            [
+                -23.5505,
+                -46.6333
+            ],
+            14
+        );
 
 
 L.tileLayer(
@@ -44,267 +103,350 @@ L.tileLayer(
         attribution:
             "© OpenStreetMap © CARTO",
 
-        maxZoom: 19
+        maxZoom:
+            19
     }
-).addTo(map);
+)
+.addTo(map);
 
 
-// ========================================
+// ============================================================
 // ÍCONES
-// ========================================
+// ============================================================
 
-const userIcon = L.divIcon({
+const userIcon =
+    L.divIcon({
+        className: "",
 
-    className: "",
+        html:
+            `<div class="user-marker"></div>`,
 
-    html:
-        `<div class="user-marker"></div>`,
+        iconSize:
+            [18, 18],
 
-    iconSize: [18, 18],
-
-    iconAnchor: [9, 9]
-
-});
-
-
-const stopIcon = L.divIcon({
-
-    className: "",
-
-    html:
-        `<div class="stop-marker"></div>`,
-
-    iconSize: [20, 20],
-
-    iconAnchor: [10, 10]
-
-});
+        iconAnchor:
+            [9, 9]
+    });
 
 
-// ========================================
-// SEGURANÇA DE TEXTO
-// ========================================
+const stopIcon =
+    L.divIcon({
+        className: "",
+
+        html:
+            `<div class="stop-marker"></div>`,
+
+        iconSize:
+            [20, 20],
+
+        iconAnchor:
+            [10, 10]
+    });
+
+
+const destinationIcon =
+    L.divIcon({
+        className: "",
+
+        html:
+            `<div class="destination-marker">★</div>`,
+
+        iconSize:
+            [42, 42],
+
+        iconAnchor:
+            [21, 21]
+    });
+
+
+const tempPlaceIcon =
+    L.divIcon({
+        className: "",
+
+        html:
+            `<div class="temp-place-marker">+</div>`,
+
+        iconSize:
+            [38, 38],
+
+        iconAnchor:
+            [19, 19]
+    });
+
+
+// ============================================================
+// UTILIDADES
+// ============================================================
 
 function escaparHTML(texto) {
 
-    return String(texto ?? "")
-
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+    return String(
+        texto ?? ""
+    )
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
 
-// ========================================
-// ID ÚNICO DA LINHA
-// ========================================
+function normalizarTexto(texto) {
+
+    return String(
+        texto ?? ""
+    )
+    .trim()
+    .toUpperCase()
+    .replace(
+        /\s+/g,
+        " "
+    );
+
+}
+
+
+function codigoDoPonto(ponto) {
+
+    return String(
+        ponto?.gtfsStopId ||
+        ponto?.cp ||
+        ""
+    );
+
+}
+
+
+function numeroDaLinha(linha) {
+
+    return String(
+        linha?.letreiro ||
+        linha?.codigo ||
+        "Linha"
+    );
+
+}
+
+
+// ============================================================
+// DESTINO / ORIGEM
+// ============================================================
+
+function destinoDaLinha(linha) {
+
+    const sentido =
+        Number(
+            linha?.sentido
+        );
+
+
+    if (
+        sentido === 2
+    ) {
+
+        return String(
+            linha?.origem ||
+            linha?.destino ||
+            "Destino não informado"
+        );
+
+    }
+
+
+    return String(
+        linha?.destino ||
+        linha?.origem ||
+        "Destino não informado"
+    );
+
+}
+
+
+function origemDaLinha(linha) {
+
+    const sentido =
+        Number(
+            linha?.sentido
+        );
+
+
+    if (
+        sentido === 2
+    ) {
+
+        return String(
+            linha?.destino ||
+            ""
+        );
+
+    }
+
+
+    return String(
+        linha?.origem ||
+        ""
+    );
+
+}
+
+
+// ============================================================
+// CHAVES DAS LINHAS
+// ============================================================
+
+function chaveServico(linha) {
+
+    return [
+
+        normalizarTexto(
+            numeroDaLinha(
+                linha
+            )
+        ),
+
+        String(
+            Number(
+                linha?.sentido
+            ) ||
+            "x"
+        )
+
+    ].join("|");
+
+}
+
 
 function chaveDaLinha(linha) {
 
-    return String(
-        linha.letreiro ||
-        linha.codigo ||
-        "linha"
-    );
+    return [
 
-}
+        chaveServico(
+            linha
+        ),
 
-
-// ========================================
-// BANCO LOCAL DAS REVIEWS
-// ========================================
-
-function carregarAvaliacoes() {
-
-    try {
-
-        const dados =
-            localStorage.getItem(
-                "busreview_avaliacoes"
-            );
-
-        const lista =
-            JSON.parse(
-                dados || "[]"
-            );
-
-        return Array.isArray(lista)
-            ? lista
-            : [];
-
-    }
-
-    catch (erro) {
-
-        console.error(
-            "Erro ao carregar avaliações:",
-            erro
-        );
-
-        return [];
-
-    }
-
-}
-
-
-function salvarAvaliacoes(lista) {
-
-    localStorage.setItem(
-        "busreview_avaliacoes",
-        JSON.stringify(lista)
-    );
-
-}
-
-
-// ========================================
-// PEGAR REVIEWS DE UMA LINHA
-// ========================================
-
-function reviewsDaLinha(linha) {
-
-    const chave =
-        chaveDaLinha(linha);
-
-
-    return carregarAvaliacoes()
-        .filter(
-            review =>
-                String(
-                    review.linha
-                ) === chave
+        normalizarTexto(
+            destinoDaLinha(
+                linha
+            )
         )
-        .sort(
-            (a, b) =>
-                new Date(b.data) -
-                new Date(a.data)
-        );
+
+    ].join("|");
 
 }
 
 
-// ========================================
-// MÉDIA
-// ========================================
+// ============================================================
+// DISTÂNCIA
+// ============================================================
 
-function calcularMediaReviews(
-    reviews
+function distanciaMetros(
+    lat1,
+    lon1,
+    lat2,
+    lon2
 ) {
 
-    if (!reviews.length) {
-        return 0;
-    }
+    const R =
+        6371000;
 
 
-    const soma =
-        reviews.reduce(
-            (
-                total,
-                review
-            ) => {
-
-                return total +
-                    Number(
-                        review.nota || 0
-                    );
-
-            },
-            0
-        );
+    const p1 =
+        Number(lat1) *
+        Math.PI / 180;
 
 
-    return soma /
-        reviews.length;
+    const p2 =
+        Number(lat2) *
+        Math.PI / 180;
+
+
+    const dLat =
+        (
+            Number(lat2) -
+            Number(lat1)
+        ) *
+        Math.PI / 180;
+
+
+    const dLon =
+        (
+            Number(lon2) -
+            Number(lon1)
+        ) *
+        Math.PI / 180;
+
+
+    const a =
+
+        Math.sin(
+            dLat / 2
+        ) ** 2 +
+
+        Math.cos(p1) *
+
+        Math.cos(p2) *
+
+        Math.sin(
+            dLon / 2
+        ) ** 2;
+
+
+    return (
+
+        R *
+
+        2 *
+
+        Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        )
+
+    );
 
 }
 
 
-// ========================================
-// ESTRELAS
-// ========================================
+// ============================================================
+// HORÁRIOS
+// ============================================================
 
-function estrelasHTML(nota) {
-
-    const arredondada =
-        Math.round(
-            Number(nota) || 0
-        );
-
-
-    let resultado = "";
-
-
-    for (
-        let i = 1;
-        i <= 5;
-        i++
-    ) {
-
-        resultado +=
-            i <= arredondada
-                ? "★"
-                : "☆";
-
-    }
-
-
-    return resultado;
-
-}
-
-
-// ========================================
-// TEMPO ATÉ CHEGADA
-// ========================================
-
-function minutosAteHorario(
-    horario
-) {
+function timestampDoHorario(horario) {
 
     if (!horario) {
+
         return null;
+
     }
 
 
     const partes =
-        horario.split(":");
+        String(
+            horario
+        )
+        .split(":");
 
 
     if (
-        partes.length !== 2
+        partes.length < 2
     ) {
+
         return null;
+
     }
 
 
     const hora =
-        Number(partes[0]);
+        Number(
+            partes[0]
+        );
+
 
     const minuto =
-        Number(partes[1]);
+        Number(
+            partes[1]
+        );
 
 
     if (
@@ -335,7 +477,8 @@ function minutosAteHorario(
 
     if (
         chegada.getTime() <
-        agora.getTime() - 60000
+        agora.getTime() -
+        60000
     ) {
 
         chegada.setDate(
@@ -345,53 +488,938 @@ function minutosAteHorario(
     }
 
 
-    const diferenca =
-        chegada.getTime() -
-        agora.getTime();
+    return chegada.getTime();
+
+}
+
+
+function minutosAteHorario(horario) {
+
+    const chegada =
+        timestampDoHorario(
+            horario
+        );
+
+
+    if (
+        chegada === null
+    ) {
+
+        return null;
+
+    }
 
 
     return Math.max(
+
         0,
+
         Math.round(
-            diferenca /
+
+            (
+                chegada -
+                Date.now()
+            ) /
+
             60000
+
         )
+
     );
 
 }
 
 
-// ========================================
-// REMOVER MARCADORES
-// ========================================
+// ============================================================
+// PREVISÕES
+// ============================================================
 
-function removerPontos() {
+function chaveDoVeiculo(
+    linha,
+    previsao
+) {
 
-    pontosMarkers.forEach(
-        marker => {
+    const prefixo =
+        String(
+            previsao?.prefixo ||
+            ""
+        )
+        .trim();
 
-            map.removeLayer(
-                marker
+
+    if (!prefixo) {
+
+        return null;
+
+    }
+
+
+    return (
+        `${chaveServico(linha)}|${prefixo}`
+    );
+
+}
+
+
+function estadoDaPrevisao(
+    linha,
+    previsao,
+    minutos
+) {
+
+    const agora =
+        Date.now();
+
+
+    const chave =
+        chaveDoVeiculo(
+            linha,
+            previsao
+        );
+
+
+    if (chave) {
+
+        const anterior =
+            historicoPrevisoes.get(
+                chave
+            );
+
+
+        const horarioAtual =
+            String(
+                previsao?.horario ||
+                ""
+            );
+
+
+        let amareloAte =
+            anterior?.amareloAte ||
+            0;
+
+
+        if (
+            anterior &&
+            anterior.horario &&
+            anterior.horario !==
+            horarioAtual
+        ) {
+
+            amareloAte =
+                agora +
+                TEMPO_AMARELO_MS;
+
+        }
+
+
+        historicoPrevisoes.set(
+            chave,
+            {
+                horario:
+                    horarioAtual,
+
+                amareloAte,
+
+                vistoEm:
+                    agora
+            }
+        );
+
+
+        if (
+            amareloAte >
+            agora
+        ) {
+
+            return {
+                classe:
+                    "previsao-amarela",
+
+                texto:
+                    "Horário alterado"
+            };
+
+        }
+
+    }
+
+
+    if (
+        minutos <=
+        LIMITE_VERDE_MIN
+    ) {
+
+        return {
+            classe:
+                "previsao-verde",
+
+            texto:
+                "Chegando em breve"
+        };
+
+    }
+
+
+    return {
+        classe:
+            "previsao-vermelha",
+
+        texto:
+            "Horário previsto"
+    };
+
+}
+
+
+// ============================================================
+// MENU
+// ============================================================
+
+function abrirMenu() {
+
+    document
+        .getElementById(
+            "menu-lateral"
+        )
+        ?.classList
+        .add(
+            "aberto"
+        );
+
+
+    document
+        .getElementById(
+            "menu-fundo"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+}
+
+
+function fecharMenu() {
+
+    document
+        .getElementById(
+            "menu-lateral"
+        )
+        ?.classList
+        .remove(
+            "aberto"
+        );
+
+
+    document
+        .getElementById(
+            "menu-fundo"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+}
+
+
+// ============================================================
+// LUGARES SALVOS
+// ============================================================
+
+function carregarLugares() {
+
+    try {
+
+        const dados =
+            JSON.parse(
+
+                localStorage.getItem(
+                    "busreview_lugares"
+                ) ||
+
+                "[]"
+
+            );
+
+
+        return Array.isArray(dados)
+
+            ? dados
+
+            : [];
+
+    }
+
+    catch {
+
+        return [];
+
+    }
+
+}
+
+
+function salvarLugares(lista) {
+
+    localStorage.setItem(
+
+        "busreview_lugares",
+
+        JSON.stringify(
+            lista
+        )
+
+    );
+
+}
+
+
+function gerarIdLugar() {
+
+    return (
+
+        String(
+            Date.now()
+        ) +
+
+        "-" +
+
+        Math.random()
+            .toString(16)
+            .slice(2)
+
+    );
+
+}
+
+
+// ============================================================
+// RENDERIZAR LUGARES
+// ============================================================
+
+function renderizarLugaresMenu() {
+
+    const lista =
+        document.getElementById(
+            "lista-lugares-menu"
+        );
+
+
+    if (!lista) {
+
+        return;
+
+    }
+
+
+    const lugares =
+        carregarLugares();
+
+
+    lista.innerHTML =
+        "";
+
+
+    if (
+        !lugares.length
+    ) {
+
+        lista.innerHTML = `
+
+            <div class="menu-vazio">
+
+                Você ainda não salvou nenhum lugar.
+
+                <br><br>
+
+                Crie Casa, Escola, Trabalho,
+                Treino ou qualquer outro
+                ponto de referência.
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    lugares.forEach(
+        lugar => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "lugar-menu-card";
+
+
+            item.innerHTML = `
+
+                <button
+                    class="lugar-menu-principal"
+                    type="button"
+                >
+
+                    <span class="menu-item-icone">
+
+                        ${escaparHTML(
+                            lugar.icone ||
+                            "📍"
+                        )}
+
+                    </span>
+
+
+                    <span class="menu-item-textos">
+
+                        <strong>
+
+                            ${escaparHTML(
+                                lugar.nome
+                            )}
+
+                        </strong>
+
+
+                        <small>
+
+                            ${escaparHTML(
+                                lugar.endereco ||
+                                "Local salvo no mapa"
+                            )}
+
+                        </small>
+
+                    </span>
+
+
+                    <span class="menu-seta">
+                        ›
+                    </span>
+
+                </button>
+
+
+                <button
+                    class="lugar-menu-editar"
+                    type="button"
+                >
+                    ⋯
+                </button>
+
+            `;
+
+
+            item
+                .querySelector(
+                    ".lugar-menu-principal"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+
+                        irParaLugar(
+                            lugar.id
+                        );
+
+                    }
+                );
+
+
+            item
+                .querySelector(
+                    ".lugar-menu-editar"
+                )
+                ?.addEventListener(
+                    "click",
+                    evento => {
+
+                        evento.stopPropagation();
+
+
+                        editarLugar(
+                            lugar.id
+                        );
+
+                    }
+                );
+
+
+            lista.appendChild(
+                item
             );
 
         }
     );
 
+}
 
-    pontosMarkers = [];
+
+// ============================================================
+// NOVO LUGAR
+// ============================================================
+
+function abrirModalNovoLugar() {
+
+    fecharMenu();
+
+
+    lugarEmEdicaoId =
+        null;
+
+
+    lugarLatTemporario =
+        null;
+
+
+    lugarLonTemporario =
+        null;
+
+
+    limparMarcadorLugarTemporario();
+
+
+    const titulo =
+        document.getElementById(
+            "tituloModalLugar"
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Adicionar lugar";
+
+    }
+
+
+    const nome =
+        document.getElementById(
+            "nomeLugar"
+        );
+
+
+    if (nome) {
+
+        nome.value =
+            "";
+
+    }
+
+
+    const endereco =
+        document.getElementById(
+            "enderecoLugar"
+        );
+
+
+    if (endereco) {
+
+        endereco.value =
+            "";
+
+    }
+
+
+    const icone =
+        document.getElementById(
+            "iconeLugar"
+        );
+
+
+    if (icone) {
+
+        icone.value =
+            "📍";
+
+    }
+
+
+    const status =
+        document.getElementById(
+            "statusBuscaEndereco"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            "";
+
+    }
+
+
+    atualizarCoordenadasLugarNaTela();
+
+
+    document
+        .getElementById(
+            "botaoExcluirLugar"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+
+    document
+        .getElementById(
+            "modalLugar"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
 
 }
 
 
-// ========================================
-// BUSCAR PARADAS
-// ========================================
+// ============================================================
+// EDITAR LUGAR
+// ============================================================
 
-async function criarPontosPerto() {
+function editarLugar(id) {
+
+    const lugar =
+        carregarLugares()
+            .find(
+                item =>
+                    item.id === id
+            );
+
+
+    if (!lugar) {
+
+        return;
+
+    }
+
+
+    fecharMenu();
+
+
+    lugarEmEdicaoId =
+        id;
+
+
+    lugarLatTemporario =
+        Number(
+            lugar.lat
+        );
+
+
+    lugarLonTemporario =
+        Number(
+            lugar.lon
+        );
+
+
+    const titulo =
+        document.getElementById(
+            "tituloModalLugar"
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+            "Editar lugar";
+
+    }
+
+
+    const nome =
+        document.getElementById(
+            "nomeLugar"
+        );
+
+
+    if (nome) {
+
+        nome.value =
+            lugar.nome ||
+            "";
+
+    }
+
+
+    const endereco =
+        document.getElementById(
+            "enderecoLugar"
+        );
+
+
+    if (endereco) {
+
+        endereco.value =
+            lugar.endereco ||
+            "";
+
+    }
+
+
+    const icone =
+        document.getElementById(
+            "iconeLugar"
+        );
+
+
+    if (icone) {
+
+        icone.value =
+            lugar.icone ||
+            "📍";
+
+    }
+
+
+    atualizarCoordenadasLugarNaTela();
+
+
+    mostrarMarcadorLugarTemporario();
+
+
+    document
+        .getElementById(
+            "botaoExcluirLugar"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+
+    document
+        .getElementById(
+            "modalLugar"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+}
+
+
+// ============================================================
+// FECHAR MODAL LUGAR
+// ============================================================
+
+function fecharModalLugar() {
+
+    modoMarcarLugar =
+        false;
+
+
+    document
+        .getElementById(
+            "modalLugar"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+
+    document
+        .getElementById(
+            "aviso-marcar-lugar"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+
+    limparMarcadorLugarTemporario();
+
+}
+
+
+// ============================================================
+// COORDENADAS
+// ============================================================
+
+function atualizarCoordenadasLugarNaTela() {
+
+    const elemento =
+        document.getElementById(
+            "coordenadasLugar"
+        );
+
+
+    if (!elemento) {
+
+        return;
+
+    }
+
 
     if (
-        usuarioLat === null ||
-        usuarioLon === null
+        Number.isFinite(
+            lugarLatTemporario
+        ) &&
+
+        Number.isFinite(
+            lugarLonTemporario
+        )
+    ) {
+
+        elemento.textContent =
+
+            "Local definido: " +
+
+            lugarLatTemporario
+                .toFixed(5) +
+
+            ", " +
+
+            lugarLonTemporario
+                .toFixed(5);
+
+
+        elemento.classList.add(
+            "definido"
+        );
+
+    }
+
+    else {
+
+        elemento.textContent =
+            "Nenhuma localização definida ainda.";
+
+
+        elemento.classList.remove(
+            "definido"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// USAR MINHA LOCALIZAÇÃO
+// ============================================================
+
+function usarMinhaLocalizacaoNoLugar() {
+
+    if (
+        !Number.isFinite(usuarioLat) ||
+        !Number.isFinite(usuarioLon)
+    ) {
+
+        alert(
+            "Ainda não consegui sua localização."
+        );
+
+
+        return;
+
+    }
+
+
+    lugarLatTemporario =
+        usuarioLat;
+
+
+    lugarLonTemporario =
+        usuarioLon;
+
+
+    atualizarCoordenadasLugarNaTela();
+
+
+    mostrarMarcadorLugarTemporario();
+
+}
+
+
+// ============================================================
+// MARCAR NO MAPA
+// ============================================================
+
+function marcarLugarNoMapa() {
+
+    modoMarcarLugar =
+        true;
+
+
+    document
+        .getElementById(
+            "modalLugar"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+
+    document
+        .getElementById(
+            "aviso-marcar-lugar"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+}
+
+
+function cancelarMarcacaoLugar() {
+
+    modoMarcarLugar =
+        false;
+
+
+    document
+        .getElementById(
+            "aviso-marcar-lugar"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+
+    document
+        .getElementById(
+            "modalLugar"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+}
+
+
+// ============================================================
+// MARCADOR TEMPORÁRIO
+// ============================================================
+
+function mostrarMarcadorLugarTemporario() {
+
+    limparMarcadorLugarTemporario();
+
+
+    if (
+        !Number.isFinite(
+            lugarLatTemporario
+        ) ||
+
+        !Number.isFinite(
+            lugarLonTemporario
+        )
     ) {
 
         return;
@@ -399,119 +1427,1311 @@ async function criarPontosPerto() {
     }
 
 
-    removerPontos();
+    marcadorLugarTemporario =
+        L.marker(
+            [
+                lugarLatTemporario,
+                lugarLonTemporario
+            ],
+            {
+                icon:
+                    tempPlaceIcon,
+
+                zIndexOffset:
+                    1200
+            }
+        )
+        .addTo(map);
+
+}
 
 
-    console.log(
-        "BUSCANDO PARADAS"
-    );
+function limparMarcadorLugarTemporario() {
+
+    if (
+        marcadorLugarTemporario
+    ) {
+
+        map.removeLayer(
+            marcadorLugarTemporario
+        );
+
+
+        marcadorLugarTemporario =
+            null;
+
+    }
+
+}
+
+
+// ============================================================
+// BUSCAR ENDEREÇO
+// ============================================================
+
+async function buscarEnderecoLugar() {
+
+    const campo =
+        document.getElementById(
+            "enderecoLugar"
+        );
+
+
+    const status =
+        document.getElementById(
+            "statusBuscaEndereco"
+        );
+
+
+    const endereco =
+        campo?.value
+            .trim();
+
+
+    if (!endereco) {
+
+        alert(
+            "Digite um endereço primeiro."
+        );
+
+
+        return;
+
+    }
+
+
+    if (status) {
+
+        status.textContent =
+            "Buscando endereço...";
+
+    }
 
 
     try {
 
+        let consulta =
+            endereco;
+
+
+        if (
+            !/são paulo|sao paulo/i
+                .test(
+                    endereco
+                )
+        ) {
+
+            consulta +=
+                ", São Paulo, SP, Brasil";
+
+        }
+
+
         const resposta =
             await fetch(
 
-                `/api/paradas?lat=${encodeURIComponent(usuarioLat)}&lon=${encodeURIComponent(usuarioLon)}`,
+                "https://nominatim.openstreetmap.org/search" +
+
+                "?format=json" +
+
+                "&limit=1" +
+
+                "&countrycodes=br" +
+
+                "&q=" +
+
+                encodeURIComponent(
+                    consulta
+                ),
 
                 {
-                    cache: "no-store"
+                    headers: {
+                        "Accept-Language":
+                            "pt-BR"
+                    }
                 }
 
             );
 
 
-        if (!resposta.ok) {
+        if (
+            !resposta.ok
+        ) {
 
             throw new Error(
-                `HTTP ${resposta.status}`
+                "Erro ao buscar endereço"
             );
 
         }
 
 
-        const pontos =
+        const dados =
             await resposta.json();
 
 
         if (
-            !Array.isArray(pontos)
+            !Array.isArray(dados) ||
+            !dados.length
         ) {
 
-            throw new Error(
-                "Resposta inválida."
-            );
+            if (status) {
+
+                status.textContent =
+                    "Não encontrei. Tente marcar no mapa.";
+
+            }
+
+
+            return;
 
         }
 
 
-        console.log(
-            "TOTAL RECEBIDO DA API:",
-            pontos.length
+        lugarLatTemporario =
+            Number(
+                dados[0].lat
+            );
+
+
+        lugarLonTemporario =
+            Number(
+                dados[0].lon
+            );
+
+
+        atualizarCoordenadasLugarNaTela();
+
+
+        mostrarMarcadorLugarTemporario();
+
+
+        map.setView(
+            [
+                lugarLatTemporario,
+                lugarLonTemporario
+            ],
+            17
         );
 
 
-        pontos.forEach(
-            ponto => {
+        if (status) {
 
-                const lat =
-                    Number(ponto.py);
+            status.textContent =
+                "Endereço encontrado. Confira no mapa.";
 
-                const lon =
-                    Number(ponto.px);
+        }
 
+    }
 
-                if (
-                    !Number.isFinite(lat) ||
-                    !Number.isFinite(lon)
-                ) {
+    catch (erro) {
 
-                    return;
-
-                }
+        console.error(
+            erro
+        );
 
 
-                const marker =
-                    L.marker(
-                        [lat, lon],
-                        {
-                            icon: stopIcon
-                        }
+        if (status) {
+
+            status.textContent =
+                "Não consegui buscar. Marque no mapa.";
+
+        }
+
+    }
+
+}
+
+
+// ============================================================
+// SALVAR LUGAR
+// ============================================================
+
+function salvarLugarAtual() {
+
+    const nome =
+        document
+            .getElementById(
+                "nomeLugar"
+            )
+            ?.value
+            .trim();
+
+
+    const endereco =
+        document
+            .getElementById(
+                "enderecoLugar"
+            )
+            ?.value
+            .trim() ||
+        "";
+
+
+    const icone =
+        document
+            .getElementById(
+                "iconeLugar"
+            )
+            ?.value ||
+        "📍";
+
+
+    if (!nome) {
+
+        alert(
+            "Dê um nome para esse lugar."
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        !Number.isFinite(
+            lugarLatTemporario
+        ) ||
+
+        !Number.isFinite(
+            lugarLonTemporario
+        )
+    ) {
+
+        alert(
+            "Defina a localização do lugar."
+        );
+
+
+        return;
+
+    }
+
+
+    const lugares =
+        carregarLugares();
+
+
+    if (
+        lugarEmEdicaoId
+    ) {
+
+        const indice =
+            lugares.findIndex(
+                item =>
+                    item.id ===
+                    lugarEmEdicaoId
+            );
+
+
+        if (
+            indice >= 0
+        ) {
+
+            lugares[indice] = {
+
+                ...lugares[indice],
+
+                nome,
+
+                endereco,
+
+                icone,
+
+                lat:
+                    lugarLatTemporario,
+
+                lon:
+                    lugarLonTemporario
+
+            };
+
+        }
+
+    }
+
+    else {
+
+        lugares.push({
+
+            id:
+                gerarIdLugar(),
+
+            nome,
+
+            endereco,
+
+            icone,
+
+            lat:
+                lugarLatTemporario,
+
+            lon:
+                lugarLonTemporario
+
+        });
+
+    }
+
+
+    salvarLugares(
+        lugares
+    );
+
+
+    renderizarLugaresMenu();
+
+
+    fecharModalLugar();
+
+}
+
+
+// ============================================================
+// EXCLUIR LUGAR
+// ============================================================
+
+function excluirLugarAtual() {
+
+    if (
+        !lugarEmEdicaoId
+    ) {
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            "Excluir este lugar?"
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    const lugares =
+        carregarLugares()
+            .filter(
+                item =>
+                    item.id !==
+                    lugarEmEdicaoId
+            );
+
+
+    salvarLugares(
+        lugares
+    );
+
+
+    renderizarLugaresMenu();
+
+
+    fecharModalLugar();
+
+}
+
+
+// ============================================================
+// CLIQUE NO MAPA
+// ============================================================
+
+map.on(
+    "click",
+    evento => {
+
+        if (
+            !modoMarcarLugar
+        ) {
+
+            return;
+
+        }
+
+
+        lugarLatTemporario =
+            Number(
+                evento.latlng.lat
+            );
+
+
+        lugarLonTemporario =
+            Number(
+                evento.latlng.lng
+            );
+
+
+        modoMarcarLugar =
+            false;
+
+
+        document
+            .getElementById(
+                "aviso-marcar-lugar"
+            )
+            ?.classList
+            .add(
+                "oculto"
+            );
+
+
+        document
+            .getElementById(
+                "modalLugar"
+            )
+            ?.classList
+            .remove(
+                "oculto"
+            );
+
+
+        atualizarCoordenadasLugarNaTela();
+
+
+        mostrarMarcadorLugarTemporario();
+
+    }
+);
+
+
+// ============================================================
+// DESTINO
+// ============================================================
+
+function mostrarMarcadorDestino(lugar) {
+
+    if (
+        marcadorDestino
+    ) {
+
+        map.removeLayer(
+            marcadorDestino
+        );
+
+    }
+
+
+    marcadorDestino =
+        L.marker(
+            [
+                Number(
+                    lugar.lat
+                ),
+
+                Number(
+                    lugar.lon
+                )
+            ],
+            {
+                icon:
+                    destinationIcon,
+
+                zIndexOffset:
+                    1100
+            }
+        )
+        .addTo(map);
+
+
+    marcadorDestino.bindTooltip(
+
+        (
+            lugar.icone ||
+            "📍"
+        ) +
+
+        " " +
+
+        lugar.nome
+
+    );
+
+}
+
+
+// ============================================================
+// API PARADAS
+// ============================================================
+
+async function buscarParadasApi(
+    lat,
+    lon
+) {
+
+    const resposta =
+        await fetch(
+
+            `/api/paradas?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&raio=${RAIO_KM}`,
+
+            {
+                cache:
+                    "no-store"
+            }
+
+        );
+
+
+    if (
+        !resposta.ok
+    ) {
+
+        throw new Error(
+            `HTTP ${resposta.status}`
+        );
+
+    }
+
+
+    const dados =
+        await resposta.json();
+
+
+    return Array.isArray(dados)
+
+        ? dados
+
+        : [];
+
+}
+
+
+// ============================================================
+// PARADAS POR DISTÂNCIA
+// ============================================================
+
+function prepararParadasPorDistancia(
+    paradas,
+    lat,
+    lon,
+    limite,
+    maximo
+) {
+
+    return paradas
+
+        .map(
+            ponto => ({
+
+                ...ponto,
+
+                distanciaCalculada:
+                    distanciaMetros(
+                        lat,
+                        lon,
+                        Number(
+                            ponto.py
+                        ),
+                        Number(
+                            ponto.px
+                        )
                     )
-                    .addTo(map);
+
+            })
+        )
+
+        .filter(
+            ponto =>
+
+                Number.isFinite(
+                    ponto.distanciaCalculada
+                ) &&
+
+                ponto.distanciaCalculada <=
+                limite
+        )
+
+        .sort(
+            (
+                a,
+                b
+            ) =>
+
+                a.distanciaCalculada -
+                b.distanciaCalculada
+        )
+
+        .slice(
+            0,
+            maximo
+        );
+
+}
 
 
-                marker.bindTooltip(
+// ============================================================
+// LINHAS DA PARADA
+// ============================================================
 
-                    ponto.np ||
-                    "Ponto de ônibus"
+async function consultarLinhasParada(
+    ponto,
+    usarCache = true
+) {
 
-                );
+    const codigo =
+        codigoDoPonto(
+            ponto
+        );
 
 
-                marker.on(
-                    "click",
-                    () => {
+    if (!codigo) {
 
-                        abrirPonto(
-                            ponto
-                        );
+        throw new Error(
+            "Ponto sem código."
+        );
+
+    }
+
+
+    const cache =
+        cacheLinhasParada.get(
+            codigo
+        );
+
+
+    if (
+        usarCache &&
+        cache &&
+        Date.now() -
+        cache.criadoEm <
+        15000
+    ) {
+
+        return cache.dados;
+
+    }
+
+
+    const resposta =
+        await fetch(
+
+            `/api/paradas/${encodeURIComponent(codigo)}/linhas`,
+
+            {
+                cache:
+                    "no-store"
+            }
+
+        );
+
+
+    if (
+        !resposta.ok
+    ) {
+
+        throw new Error(
+            `HTTP ${resposta.status}`
+        );
+
+    }
+
+
+    const dados =
+        await resposta.json();
+
+
+    cacheLinhasParada.set(
+        codigo,
+        {
+            criadoEm:
+                Date.now(),
+
+            dados
+        }
+    );
+
+
+    return dados;
+
+}
+
+
+// ============================================================
+// IR PARA LUGAR
+// ============================================================
+
+async function irParaLugar(id) {
+
+    const lugar =
+        carregarLugares()
+            .find(
+                item =>
+                    item.id === id
+            );
+
+
+    if (!lugar) {
+
+        return;
+
+    }
+
+
+    fecharMenu();
+
+
+    fecharPainelPonto();
+
+
+    abrirPainelRota(
+        lugar
+    );
+
+
+    mostrarMarcadorDestino(
+        lugar
+    );
+
+
+    if (
+        !Number.isFinite(usuarioLat) ||
+        !Number.isFinite(usuarioLon)
+    ) {
+
+        const lista =
+            document.getElementById(
+                "lista-rotas"
+            );
+
+
+        if (lista) {
+
+            lista.innerHTML = `
+
+                <div class="rota-vazio">
+
+                    Ainda não consegui sua localização.
+
+                    <br><br>
+
+                    Toque no botão 📍 e tente novamente.
+
+                </div>
+
+            `;
+
+        }
+
+
+        return;
+
+    }
+
+
+    const limites =
+        L.latLngBounds(
+
+            [
+                usuarioLat,
+                usuarioLon
+            ],
+
+            [
+                Number(
+                    lugar.lat
+                ),
+
+                Number(
+                    lugar.lon
+                )
+            ]
+
+        );
+
+
+    map.fitBounds(
+        limites.pad(
+            0.25
+        )
+    );
+
+
+    await buscarRotasDiretas(
+        lugar
+    );
+
+}
+
+
+// ============================================================
+// PAINEL ROTA
+// ============================================================
+
+function abrirPainelRota(lugar) {
+
+    const nome =
+        document.getElementById(
+            "rota-destino-nome"
+        );
+
+
+    const endereco =
+        document.getElementById(
+            "rota-destino-endereco"
+        );
+
+
+    const lista =
+        document.getElementById(
+            "lista-rotas"
+        );
+
+
+    if (nome) {
+
+        nome.textContent =
+
+            (
+                lugar.icone ||
+                "📍"
+            ) +
+
+            " " +
+
+            lugar.nome;
+
+    }
+
+
+    if (endereco) {
+
+        endereco.textContent =
+
+            lugar.endereco ||
+
+            "Destino salvo";
+
+    }
+
+
+    if (lista) {
+
+        lista.innerHTML = `
+
+            <div class="carregando">
+
+                Procurando pontos e linhas
+                que levam até esse lugar...
+
+            </div>
+
+        `;
+
+    }
+
+
+    document
+        .getElementById(
+            "painel-rota"
+        )
+        ?.classList
+        .remove(
+            "oculto"
+        );
+
+}
+
+
+function fecharPainelRota() {
+
+    document
+        .getElementById(
+            "painel-rota"
+        )
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+}
+
+
+// ============================================================
+// ROTAS DIRETAS
+// ============================================================
+
+async function buscarRotasDiretas(lugar) {
+
+    const lista =
+        document.getElementById(
+            "lista-rotas"
+        );
+
+
+    if (!lista) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const [
+            paradasPertoUsuario,
+            paradasPertoDestino
+        ] =
+            await Promise.all([
+
+                buscarParadasApi(
+                    usuarioLat,
+                    usuarioLon
+                ),
+
+                buscarParadasApi(
+                    Number(
+                        lugar.lat
+                    ),
+                    Number(
+                        lugar.lon
+                    )
+                )
+
+            ]);
+
+
+        const paradasOrigem =
+            prepararParadasPorDistancia(
+
+                paradasPertoUsuario,
+
+                usuarioLat,
+                usuarioLon,
+
+                RAIO_ORIGEM_ROTA_M,
+
+                MAX_PARADAS_ORIGEM
+
+            );
+
+
+        const paradasDestino =
+            prepararParadasPorDistancia(
+
+                paradasPertoDestino,
+
+                Number(
+                    lugar.lat
+                ),
+
+                Number(
+                    lugar.lon
+                ),
+
+                RAIO_DESTINO_ROTA_M,
+
+                MAX_PARADAS_DESTINO
+
+            );
+
+
+        if (
+            !paradasOrigem.length ||
+            !paradasDestino.length
+        ) {
+
+            lista.innerHTML = `
+
+                <div class="rota-vazio">
+
+                    Não encontrei pontos suficientes
+                    perto de você ou do destino.
+
+                </div>
+
+            `;
+
+
+            return;
+
+        }
+
+
+        const dadosOrigem =
+            await Promise.all(
+
+                paradasOrigem.map(
+
+                    async ponto => ({
+
+                        ponto,
+
+                        dados:
+                            await consultarLinhasParada(
+                                ponto
+                            )
+
+                    })
+
+                )
+
+            );
+
+
+        const dadosDestino =
+            await Promise.all(
+
+                paradasDestino.map(
+
+                    async ponto => ({
+
+                        ponto,
+
+                        dados:
+                            await consultarLinhasParada(
+                                ponto
+                            )
+
+                    })
+
+                )
+
+            );
+
+
+        const destinoPorServico =
+            new Map();
+
+
+        dadosDestino.forEach(
+            item => {
+
+                const linhas =
+                    Array.isArray(
+                        item.dados?.linhas
+                    )
+
+                        ? item.dados.linhas
+
+                        : [];
+
+
+                linhas.forEach(
+                    linha => {
+
+                        const chave =
+                            chaveServico(
+                                linha
+                            );
+
+
+                        const atual =
+                            destinoPorServico.get(
+                                chave
+                            );
+
+
+                        if (
+                            !atual ||
+
+                            item.ponto
+                                .distanciaCalculada <
+
+                            atual.ponto
+                                .distanciaCalculada
+                        ) {
+
+                            destinoPorServico.set(
+                                chave,
+                                {
+                                    ponto:
+                                        item.ponto,
+
+                                    linha
+                                }
+                            );
+
+                        }
 
                     }
-                );
-
-
-                pontosMarkers.push(
-                    marker
                 );
 
             }
         );
 
 
-        console.log(
-            "TOTAL DE MARCADORES CRIADOS:",
-            pontosMarkers.length
+        const melhores =
+            new Map();
+
+
+        dadosOrigem.forEach(
+            item => {
+
+                const linhas =
+                    Array.isArray(
+                        item.dados?.linhas
+                    )
+
+                        ? item.dados.linhas
+
+                        : [];
+
+
+                linhas.forEach(
+                    linha => {
+
+                        const chave =
+                            chaveServico(
+                                linha
+                            );
+
+
+                        const destinoMatch =
+                            destinoPorServico.get(
+                                chave
+                            );
+
+
+                        if (
+                            !destinoMatch
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const previsoes =
+                            (
+                                Array.isArray(
+                                    linha.previsoes
+                                )
+
+                                    ? linha.previsoes
+
+                                    : []
+                            )
+
+                            .map(
+                                previsao => ({
+
+                                    ...previsao,
+
+                                    minutos:
+                                        minutosAteHorario(
+                                            previsao.horario
+                                        )
+
+                                })
+                            )
+
+                            .filter(
+                                previsao =>
+
+                                    previsao.minutos !==
+                                    null &&
+
+                                    previsao.minutos >= 0 &&
+
+                                    previsao.minutos <=
+                                    LIMITE_PREVISAO_MIN
+                            )
+
+                            .sort(
+                                (
+                                    a,
+                                    b
+                                ) =>
+
+                                    a.minutos -
+                                    b.minutos
+                            );
+
+
+                        const espera =
+                            previsoes.length
+
+                                ? previsoes[0]
+                                    .minutos
+
+                                : 60;
+
+
+                        const score =
+
+                            item.ponto
+                                .distanciaCalculada +
+
+                            destinoMatch.ponto
+                                .distanciaCalculada +
+
+                            (
+                                espera *
+                                20
+                            );
+
+
+                        const candidato = {
+
+                            linha,
+
+                            origem:
+                                item.ponto,
+
+                            destino:
+                                destinoMatch.ponto,
+
+                            previsoes,
+
+                            score
+
+                        };
+
+
+                        const existente =
+                            melhores.get(
+                                chave
+                            );
+
+
+                        if (
+                            !existente ||
+                            candidato.score <
+                            existente.score
+                        ) {
+
+                            melhores.set(
+                                chave,
+                                candidato
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        const rotas =
+            [
+                ...melhores.values()
+            ]
+
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+
+                    a.score -
+                    b.score
+            )
+
+            .slice(
+                0,
+                8
+            );
+
+
+        renderizarRotasDiretas(
+            rotas,
+            lugar
         );
 
     }
@@ -519,18 +2739,362 @@ async function criarPontosPerto() {
     catch (erro) {
 
         console.error(
-            "Erro nas paradas:",
+            "Erro ao buscar rotas:",
             erro
         );
+
+
+        lista.innerHTML = `
+
+            <div class="rota-vazio">
+
+                Não consegui calcular
+                as opções agora.
+
+            </div>
+
+        `;
 
     }
 
 }
 
 
-// ========================================
-// LOCALIZAÇÃO
-// ========================================
+// ============================================================
+// RENDERIZAR ROTAS
+// ============================================================
+
+function renderizarRotasDiretas(
+    rotas,
+    lugar
+) {
+
+    const lista =
+        document.getElementById(
+            "lista-rotas"
+        );
+
+
+    if (!lista) {
+
+        return;
+
+    }
+
+
+    lista.innerHTML =
+        "";
+
+
+    if (
+        !rotas.length
+    ) {
+
+        lista.innerHTML = `
+
+            <div class="rota-vazio">
+
+                <strong>
+                    Nenhuma rota direta encontrada.
+                </strong>
+
+                <br><br>
+
+                Não encontrei a mesma linha
+                no mesmo sentido passando
+                perto de você e perto de
+                ${escaparHTML(lugar.nome)}.
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    rotas.forEach(
+        (
+            rota,
+            indice
+        ) => {
+
+            const primeira =
+                rota.previsoes[0];
+
+
+            let chegadaHTML = `
+
+                <span class="rota-sem-previsao">
+
+                    Sem previsão ao vivo
+
+                </span>
+
+            `;
+
+
+            if (primeira) {
+
+                const estado =
+                    estadoDaPrevisao(
+                        rota.linha,
+                        primeira,
+                        primeira.minutos
+                    );
+
+
+                chegadaHTML = `
+
+                    <span
+                        class="
+                            rota-chegada
+                            ${estado.classe}
+                        "
+                    >
+
+                        ${
+                            primeira.minutos === 0
+
+                                ? "Chegando"
+
+                                : primeira.minutos +
+                                  " min"
+                        }
+
+                    </span>
+
+                `;
+
+            }
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "rota-card";
+
+
+            card.innerHTML = `
+
+                <div class="rota-card-topo">
+
+                    <span class="rota-ranking">
+
+                        ${
+                            indice === 0
+
+                                ? "MELHOR OPÇÃO"
+
+                                : "OPÇÃO " +
+                                  (
+                                      indice + 1
+                                  )
+                        }
+
+                    </span>
+
+
+                    ${chegadaHTML}
+
+                </div>
+
+
+                <div class="rota-linha-numero">
+
+                    ${escaparHTML(
+                        numeroDaLinha(
+                            rota.linha
+                        )
+                    )}
+
+                </div>
+
+
+                <div class="rota-linha-destino">
+
+                    →
+                    ${escaparHTML(
+                        destinoDaLinha(
+                            rota.linha
+                        )
+                    )}
+
+                </div>
+
+
+                <div class="rota-etapas">
+
+                    <div class="rota-etapa">
+
+                        <span>
+                            🚶
+                        </span>
+
+                        <div>
+
+                            <strong>
+
+                                ${Math.round(
+                                    rota.origem
+                                        .distanciaCalculada
+                                )}
+                                m até o ponto
+
+                            </strong>
+
+                            <small>
+
+                                ${escaparHTML(
+                                    rota.origem.np ||
+                                    "Ponto de embarque"
+                                )}
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="rota-etapa">
+
+                        <span>
+                            🚌
+                        </span>
+
+                        <div>
+
+                            <strong>
+
+                                ${escaparHTML(
+                                    numeroDaLinha(
+                                        rota.linha
+                                    )
+                                )}
+
+                            </strong>
+
+                            <small>
+
+                                Vá no sentido
+                                ${escaparHTML(
+                                    destinoDaLinha(
+                                        rota.linha
+                                    )
+                                )}
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="rota-etapa">
+
+                        <span>
+                            🚏
+                        </span>
+
+                        <div>
+
+                            <strong>
+
+                                Desça em
+
+                                ${escaparHTML(
+                                    rota.destino.np ||
+                                    "ponto próximo"
+                                )}
+
+                            </strong>
+
+                            <small>
+
+                                ${Math.round(
+                                    rota.destino
+                                        .distanciaCalculada
+                                )}
+                                m até
+
+                                ${escaparHTML(
+                                    lugar.nome
+                                )}
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="botao-ver-ponto-rota"
+                    type="button"
+                >
+
+                    Ver ponto de embarque
+
+                </button>
+
+            `;
+
+
+            card
+                .querySelector(
+                    ".botao-ver-ponto-rota"
+                )
+                ?.addEventListener(
+                    "click",
+                    () => {
+
+                        fecharPainelRota();
+
+
+                        map.setView(
+                            [
+                                Number(
+                                    rota.origem.py
+                                ),
+
+                                Number(
+                                    rota.origem.px
+                                )
+                            ],
+                            17
+                        );
+
+
+                        abrirPonto(
+                            rota.origem
+                        );
+
+                    }
+                );
+
+
+            lista.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// GPS
+// ============================================================
 
 function atualizarLocalizacao(
     lat,
@@ -538,10 +3102,25 @@ function atualizarLocalizacao(
 ) {
 
     usuarioLat =
-        Number(lat);
+        Number(
+            lat
+        );
+
 
     usuarioLon =
-        Number(lon);
+        Number(
+            lon
+        );
+
+
+    if (
+        !Number.isFinite(usuarioLat) ||
+        !Number.isFinite(usuarioLon)
+    ) {
+
+        return;
+
+    }
 
 
     if (
@@ -573,8 +3152,11 @@ function atualizarLocalizacao(
                 usuarioLon
             ],
             {
-                icon: userIcon,
-                zIndexOffset: 1000
+                icon:
+                    userIcon,
+
+                zIndexOffset:
+                    1000
             }
         )
         .addTo(map);
@@ -593,7 +3175,8 @@ function atualizarLocalizacao(
             ],
             {
                 radius:
-                    RAIO_KM * 1000,
+                    RAIO_KM *
+                    1000,
 
                 color:
                     "#5271ff",
@@ -602,9 +3185,10 @@ function atualizarLocalizacao(
                     "#5271ff",
 
                 fillOpacity:
-                    0.06,
+                    .05,
 
-                weight: 2
+                weight:
+                    2
             }
         )
         .addTo(map);
@@ -624,10 +3208,6 @@ function atualizarLocalizacao(
 }
 
 
-// ========================================
-// GPS
-// ========================================
-
 function obterLocalizacaoReal() {
 
     if (
@@ -638,6 +3218,7 @@ function obterLocalizacaoReal() {
             "Seu navegador não suporta localização."
         );
 
+
         return;
 
     }
@@ -647,11 +3228,6 @@ function obterLocalizacaoReal() {
         .getCurrentPosition(
 
             position => {
-
-                console.log(
-                    "LOCALIZAÇÃO REAL OBTIDA"
-                );
-
 
                 atualizarLocalizacao(
 
@@ -667,24 +3243,22 @@ function obterLocalizacaoReal() {
             erro => {
 
                 console.error(
-                    "Erro de localização:",
+                    "Erro GPS:",
                     erro
-                );
-
-
-                alert(
-                    "Não foi possível acessar sua localização."
                 );
 
             },
 
 
             {
-                enableHighAccuracy: true,
+                enableHighAccuracy:
+                    true,
 
-                timeout: 20000,
+                timeout:
+                    20000,
 
-                maximumAge: 0
+                maximumAge:
+                    0
             }
 
         );
@@ -692,171 +3266,167 @@ function obterLocalizacaoReal() {
 }
 
 
-// ========================================
-// CENTRALIZAR
-// ========================================
-
 function centralizarUsuario() {
 
     if (
-        usuarioLat === null ||
-        usuarioLon === null
+        Number.isFinite(usuarioLat) &&
+        Number.isFinite(usuarioLon)
     ) {
 
-        obterLocalizacaoReal();
+        map.setView(
+            [
+                usuarioLat,
+                usuarioLon
+            ],
+            16
+        );
+
+
+        usuarioMarker
+            ?.openTooltip();
+
 
         return;
 
     }
 
 
-    map.setView(
-        [
-            usuarioLat,
-            usuarioLon
-        ],
-        15
-    );
+    obterLocalizacaoReal();
 
 }
 
 
-// ========================================
-// ABRIR PONTO
-// ========================================
+// ============================================================
+// PONTOS DO MAPA
+// ============================================================
 
-async function abrirPonto(
-    ponto
-) {
+function removerPontos() {
 
-    const painel =
-        document.getElementById(
-            "painel-ponto"
-        );
+    pontosMarkers.forEach(
+        marker => {
 
-
-    const nome =
-        document.getElementById(
-            "painel-nome-ponto"
-        );
-
-
-    const endereco =
-        document.getElementById(
-            "painel-endereco-ponto"
-        );
-
-
-    const lista =
-        document.getElementById(
-            "lista-linhas-ponto"
-        );
-
-
-    painel?.classList.add(
-        "aberto"
-    );
-
-
-    if (nome) {
-
-        nome.textContent =
-            ponto.np ||
-            "Ponto de ônibus";
-
-    }
-
-
-    if (endereco) {
-
-        endereco.textContent =
-            ponto.ed ||
-            "Endereço não informado";
-
-    }
-
-
-    if (lista) {
-
-        lista.innerHTML = `
-
-            <div class="carregando">
-                Buscando linhas...
-            </div>
-
-        `;
-
-    }
-
-
-    buscarLinhasDoPonto(
-        ponto
-    );
-
-}
-
-
-// ========================================
-// FECHAR PONTO
-// ========================================
-
-function fecharPainelPonto() {
-
-    document
-        .getElementById(
-            "painel-ponto"
-        )
-        ?.classList
-        .remove(
-            "aberto"
-        );
-
-}
-
-
-// ========================================
-// BUSCAR LINHAS
-// ========================================
-
-async function buscarLinhasDoPonto(
-    ponto
-) {
-
-    try {
-
-        const resposta =
-            await fetch(
-
-                `/api/paradas/${ponto.cp}/linhas`,
-
-                {
-                    cache: "no-store"
-                }
-
-            );
-
-
-        if (
-            !resposta.ok
-        ) {
-
-            throw new Error(
-                `HTTP ${resposta.status}`
+            map.removeLayer(
+                marker
             );
 
         }
+    );
 
 
-        const dados =
-            await resposta.json();
+    pontosMarkers =
+        [];
+
+}
 
 
-        mostrarLinhasDoPonto(
+async function criarPontosPerto() {
 
-            dados.linhas || [],
+    if (
+        !Number.isFinite(usuarioLat) ||
+        !Number.isFinite(usuarioLon)
+    ) {
 
-            ponto
+        return;
 
+    }
+
+
+    removerPontos();
+
+
+    try {
+
+        const pontos =
+            await buscarParadasApi(
+                usuarioLat,
+                usuarioLon
+            );
+
+
+        pontos.forEach(
+            ponto => {
+
+                const lat =
+                    Number(
+                        ponto.py
+                    );
+
+
+                const lon =
+                    Number(
+                        ponto.px
+                    );
+
+
+                if (
+                    !Number.isFinite(lat) ||
+                    !Number.isFinite(lon)
+                ) {
+
+                    return;
+
+                }
+
+
+                const marker =
+                    L.marker(
+                        [
+                            lat,
+                            lon
+                        ],
+                        {
+                            icon:
+                                stopIcon
+                        }
+                    )
+                    .addTo(map);
+
+
+                marker.bindTooltip(
+
+                    escaparHTML(
+                        ponto.np ||
+                        "Ponto de ônibus"
+                    )
+
+                );
+
+
+                marker.on(
+                    "click",
+                    evento => {
+
+                        if (
+                            evento.originalEvent
+                        ) {
+
+                            L.DomEvent
+                                .stopPropagation(
+                                    evento.originalEvent
+                                );
+
+                        }
+
+
+                        abrirPonto(
+                            ponto
+                        );
+
+                    }
+                );
+
+
+                pontosMarkers.push(
+                    marker
+                );
+
+            }
+        );
+
+
+        console.log(
+            "TOTAL DE PARADAS:",
+            pontos.length
         );
 
     }
@@ -864,342 +3434,867 @@ async function buscarLinhasDoPonto(
     catch (erro) {
 
         console.error(
+            "Erro ao carregar paradas:",
             erro
         );
-
-
-        const lista =
-            document.getElementById(
-                "lista-linhas-ponto"
-            );
-
-
-        if (lista) {
-
-            lista.innerHTML = `
-
-                <div class="carregando">
-                    Não foi possível carregar as linhas.
-                </div>
-
-            `;
-
-        }
 
     }
 
 }
 
 
-// ========================================
-// MOSTRAR LINHAS
-// ========================================
+// ============================================================
+// PAINEL DO PONTO
+// ============================================================
 
-function mostrarLinhasDoPonto(
-    linhas,
-    ponto
-) {
+function elementosDoPainel() {
 
-    const container =
-        document.getElementById(
-            "lista-linhas-ponto"
+    return {
+
+        painel:
+            document.getElementById(
+                "painel-ponto"
+            ),
+
+        nome:
+            document.getElementById(
+                "painel-nome-ponto"
+            ),
+
+        endereco:
+            document.getElementById(
+                "painel-endereco-ponto"
+            ),
+
+        lista:
+            document.getElementById(
+                "lista-linhas-ponto"
+            )
+
+    };
+
+}
+
+
+function pararAtualizacaoAutomatica() {
+
+    if (
+        timerAtualizacaoPonto
+    ) {
+
+        clearInterval(
+            timerAtualizacaoPonto
         );
 
 
-    if (!container) {
-        return;
-    }
-
-
-    container.innerHTML = "";
-
-
-    if (!linhas.length) {
-
-        container.innerHTML = `
-
-            <div class="carregando">
-                Nenhuma previsão disponível.
-            </div>
-
-        `;
-
-        return;
+        timerAtualizacaoPonto =
+            null;
 
     }
 
-
-    linhas.forEach(
-        linha => {
-
-            const reviews =
-                reviewsDaLinha(
-                    linha
-                );
+}
 
 
-            const media =
-                calcularMediaReviews(
-                    reviews
-                );
+async function abrirPonto(ponto) {
+
+    pararAtualizacaoAutomatica();
 
 
-            const previsoes =
-                Array.isArray(
-                    linha.previsoes
-                )
-                    ? linha.previsoes
-                    : [];
+    fecharMenu();
 
 
-            let previsoesHTML = "";
+    fecharPainelRota();
 
 
-            previsoes
-                .slice(0, 3)
-                .forEach(
-                    previsao => {
-
-                        const horario =
-                            previsao.horario ||
-                            "--:--";
+    pontoAbertoAtual =
+        ponto;
 
 
-                        const minutos =
-                            minutosAteHorario(
-                                horario
-                            );
+    pontoAbertoIdAtual =
+        codigoDoPonto(
+            ponto
+        );
 
 
-                        const textoTempo =
-
-                            minutos === null
-
-                                ? ""
-
-                                : minutos === 0
-
-                                    ? "Chegando"
-
-                                    : `${minutos} min`;
+    const {
+        painel,
+        nome,
+        endereco,
+        lista
+    } =
+        elementosDoPainel();
 
 
-                        previsoesHTML += `
+    if (
+        !painel ||
+        !nome ||
+        !endereco ||
+        !lista
+    ) {
 
-                            <div class="previsao-item">
+        return;
 
-                                <div>
-
-                                    <div class="previsao-horario">
-                                        ${escaparHTML(horario)}
-                                    </div>
-
-                                    <div class="previsao-label">
-                                        Previsão de chegada
-                                    </div>
-
-                                </div>
+    }
 
 
-                                <div class="previsao-minutos">
-                                    ${escaparHTML(textoTempo)}
-                                </div>
-
-                            </div>
-
-                        `;
-
-                    }
-                );
+    painel
+        .classList
+        .remove(
+            "oculto"
+        );
 
 
-            if (!previsoesHTML) {
-
-                previsoesHTML = `
-
-                    <div class="carregando">
-                        Sem previsão no momento.
-                    </div>
-
-                `;
-
-            }
+    nome.textContent =
+        ponto.np ||
+        "Ponto de ônibus";
 
 
-            const card =
+    endereco.textContent =
+        ponto.ed ||
+        "";
+
+
+    lista.innerHTML = `
+
+        <div class="carregando">
+
+            Buscando linhas e horários...
+
+        </div>
+
+    `;
+
+
+    await buscarLinhasDoPonto(
+        ponto
+    );
+
+
+    timerAtualizacaoPonto =
+        setInterval(
+            () => {
+
+                if (
+                    pontoAbertoIdAtual ===
+                    codigoDoPonto(ponto)
+                ) {
+
+                    buscarLinhasDoPonto(
+                        ponto
+                    );
+
+                }
+
+            },
+
+            INTERVALO_ATUALIZACAO_MS
+        );
+
+}
+
+
+function fecharPainelPonto() {
+
+    pararAtualizacaoAutomatica();
+
+
+    pontoAbertoAtual =
+        null;
+
+
+    pontoAbertoIdAtual =
+        null;
+
+
+    elementosDoPainel()
+        .painel
+        ?.classList
+        .add(
+            "oculto"
+        );
+
+}
+
+
+// ============================================================
+// BUSCAR LINHAS DO PONTO
+// ============================================================
+
+async function buscarLinhasDoPonto(
+    ponto
+) {
+
+    const lista =
+        elementosDoPainel()
+            .lista;
+
+
+    if (!lista) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const dados =
+            await consultarLinhasParada(
+                ponto,
+                false
+            );
+
+
+        if (
+            pontoAbertoIdAtual !==
+            codigoDoPonto(ponto)
+        ) {
+
+            return;
+
+        }
+
+
+        const linhas =
+            Array.isArray(
+                dados?.linhas
+            )
+
+                ? dados.linhas
+
+                : [];
+
+
+        lista.innerHTML =
+            "";
+
+
+        if (
+            dados?.horarioConsulta
+        ) {
+
+            const atualizado =
                 document.createElement(
                     "div"
                 );
 
 
-            card.className =
-                "linha-onibus-card";
+            atualizado.className =
+                "carregando";
 
 
-            card.innerHTML = `
-
-                <div class="linha-cabecalho">
-
-                    <div>
-
-                        <div class="linha-numero">
-
-                            ${escaparHTML(
-                                linha.letreiro ||
-                                linha.codigo ||
-                                "Linha"
-                            )}
-
-                        </div>
+            atualizado.textContent =
+                `Atualizado às ${dados.horarioConsulta}`;
 
 
-                        <div class="linha-destino">
+            lista.appendChild(
+                atualizado
+            );
 
-                            ${escaparHTML(
-                                linha.destino ||
-                                "Destino não informado"
-                            )}
-
-                        </div>
-
-                    </div>
+        }
 
 
-                    <div class="linha-qtd">
+        if (
+            !linhas.length
+        ) {
 
-                        ${
-                            Number(
-                                linha.quantidadeVeiculos
-                            ) ||
-                            previsoes.length
-                        }
+            lista.innerHTML += `
 
-                        ônibus
+                <div class="carregando">
 
-                    </div>
-
-                </div>
-
-
-                <div class="linha-avaliacao-resumo">
-
-                    <span class="estrelas-pequenas">
-
-                        ${
-                            reviews.length
-                                ? estrelasHTML(media)
-                                : "☆☆☆☆☆"
-                        }
-
-                    </span>
-
-
-                    <span class="nota-media">
-
-                        ${
-                            reviews.length
-                                ? media.toFixed(1)
-                                    .replace(".", ",")
-                                : "Sem nota"
-                        }
-
-                    </span>
-
-
-                    <span class="quantidade-avaliacoes">
-
-                        ${
-                            reviews.length
-                        }
-
-                        ${
-                            reviews.length === 1
-                                ? "avaliação"
-                                : "avaliações"
-                        }
-
-                    </span>
-
-                </div>
-
-
-                <div class="titulo-previsoes">
-                    PRÓXIMAS CHEGADAS
-                </div>
-
-
-                ${previsoesHTML}
-
-
-                <div class="acoes-linha">
-
-                    <button
-                        type="button"
-                        class="botao-reviews"
-                    >
-                        Ver avaliações
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="botao-avaliar"
-                    >
-                        Avaliar linha
-                    </button>
+                    Nenhuma linha encontrada neste ponto.
 
                 </div>
 
             `;
 
 
-            card
-                .querySelector(
-                    ".botao-avaliar"
-                )
-                .addEventListener(
-                    "click",
-                    () => {
-
-                        abrirModalAvaliacao(
-                            linha,
-                            ponto
-                        );
-
-                    }
-                );
-
-
-            card
-                .querySelector(
-                    ".botao-reviews"
-                )
-                .addEventListener(
-                    "click",
-                    () => {
-
-                        abrirModalReviews(
-                            linha,
-                            ponto
-                        );
-
-                    }
-                );
-
-
-            container.appendChild(
-                card
-            );
+            return;
 
         }
+
+
+        linhas
+
+            .slice()
+
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+
+                    numeroDaLinha(a)
+                        .localeCompare(
+                            numeroDaLinha(b),
+                            "pt-BR"
+                        )
+            )
+
+            .forEach(
+                linha => {
+
+                    renderizarCardLinha(
+                        lista,
+                        linha,
+                        ponto
+                    );
+
+                }
+            );
+
+    }
+
+    catch (erro) {
+
+        console.error(
+            "Erro ao buscar linhas:",
+            erro
+        );
+
+
+        lista.innerHTML = `
+
+            <div class="carregando">
+
+                Não foi possível carregar as linhas.
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// ============================================================
+// CARD DA LINHA
+// ============================================================
+
+function renderizarCardLinha(
+    container,
+    linha,
+    ponto
+) {
+
+    const numero =
+        numeroDaLinha(
+            linha
+        );
+
+
+    const destino =
+        destinoDaLinha(
+            linha
+        );
+
+
+    const origem =
+        origemDaLinha(
+            linha
+        );
+
+
+    const reviews =
+        reviewsDaLinha(
+            linha
+        );
+
+
+    const media =
+        calcularMediaReviews(
+            reviews
+        );
+
+
+    const previsoes =
+        (
+            Array.isArray(
+                linha.previsoes
+            )
+
+                ? linha.previsoes
+
+                : []
+        )
+
+        .map(
+            previsao => ({
+
+                ...previsao,
+
+                minutos:
+                    minutosAteHorario(
+                        previsao.horario
+                    )
+
+            })
+        )
+
+        .filter(
+            previsao =>
+
+                previsao.minutos !==
+                null &&
+
+                previsao.minutos >= 0 &&
+
+                previsao.minutos <=
+                LIMITE_PREVISAO_MIN
+        )
+
+        .sort(
+            (
+                a,
+                b
+            ) =>
+
+                a.minutos -
+                b.minutos
+        );
+
+
+    let previsoesHTML =
+        "";
+
+
+    previsoes.forEach(
+        previsao => {
+
+            const estado =
+                estadoDaPrevisao(
+
+                    linha,
+
+                    previsao,
+
+                    previsao.minutos
+
+                );
+
+
+            const tempo =
+
+                previsao.minutos === 0
+
+                    ? "Chegando"
+
+                    : previsao.minutos +
+                      " min";
+
+
+            previsoesHTML += `
+
+                <div
+                    class="
+                        previsao-item
+                        ${estado.classe}
+                    "
+                >
+
+                    <div>
+
+                        <div class="previsao-horario">
+
+                            ${escaparHTML(
+                                previsao.horario
+                            )}
+
+                        </div>
+
+
+                        <div class="previsao-label">
+
+                            ${escaparHTML(
+                                estado.texto
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="previsao-minutos">
+
+                        ${escaparHTML(
+                            tempo
+                        )}
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    if (
+        !previsoesHTML
+    ) {
+
+        previsoesHTML = `
+
+            <div class="carregando">
+
+                Nenhum ônibus previsto
+                nos próximos 40 minutos.
+
+            </div>
+
+        `;
+
+    }
+
+
+    const card =
+        document.createElement(
+            "div"
+        );
+
+
+    card.className =
+        "linha-onibus-card";
+
+
+    card.innerHTML = `
+
+        <div class="linha-cabecalho">
+
+            <div>
+
+                <div class="linha-destino-destaque">
+
+                    ${escaparHTML(
+                        destino
+                    )}
+
+                </div>
+
+
+                <div class="linha-numero">
+
+                    ${escaparHTML(
+                        numero
+                    )}
+
+                </div>
+
+
+                <div class="linha-destino">
+
+                    ${
+                        origem
+
+                            ? "De " +
+                              escaparHTML(
+                                  origem
+                              )
+
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <div class="linha-qtd">
+
+                ${previsoes.length}
+                em até 40 min
+
+            </div>
+
+        </div>
+
+
+        <div class="linha-avaliacao-resumo">
+
+            <span class="estrelas-pequenas">
+
+                ${
+                    reviews.length
+
+                        ? estrelasHTML(
+                            media
+                        )
+
+                        : "☆☆☆☆☆"
+                }
+
+            </span>
+
+
+            <span>
+
+                ${
+                    reviews.length
+
+                        ? media
+                            .toFixed(1)
+                            .replace(".", ",")
+
+                        : "Sem nota"
+                }
+
+            </span>
+
+
+            <span class="quantidade-avaliacoes">
+
+                ${reviews.length}
+
+                ${
+                    reviews.length === 1
+
+                        ? "avaliação"
+
+                        : "avaliações"
+                }
+
+            </span>
+
+        </div>
+
+
+        <div class="titulo-previsoes">
+
+            PRÓXIMOS 40 MINUTOS
+
+        </div>
+
+
+        ${previsoesHTML}
+
+
+        <div class="acoes-linha">
+
+            <button
+                class="botao-reviews"
+                type="button"
+            >
+                Avaliações
+            </button>
+
+
+            <button
+                class="botao-avaliar"
+                type="button"
+            >
+                Avaliar
+            </button>
+
+        </div>
+
+    `;
+
+
+    card
+        .querySelector(
+            ".botao-reviews"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                abrirModalReviews(
+                    linha,
+                    ponto
+                );
+
+            }
+        );
+
+
+    card
+        .querySelector(
+            ".botao-avaliar"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                abrirModalAvaliacao(
+                    linha,
+                    ponto
+                );
+
+            }
+        );
+
+
+    container.appendChild(
+        card
     );
 
 }
 
 
-// ========================================
+// ============================================================
+// AVALIAÇÕES - STORAGE
+// ============================================================
+
+function carregarAvaliacoes() {
+
+    try {
+
+        const dados =
+            JSON.parse(
+
+                localStorage.getItem(
+                    "busreview_avaliacoes"
+                ) ||
+
+                "[]"
+
+            );
+
+
+        return Array.isArray(dados)
+
+            ? dados
+
+            : [];
+
+    }
+
+    catch {
+
+        return [];
+
+    }
+
+}
+
+
+function salvarAvaliacoes(lista) {
+
+    localStorage.setItem(
+
+        "busreview_avaliacoes",
+
+        JSON.stringify(
+            lista
+        )
+
+    );
+
+}
+
+
+function reviewsDaLinha(linha) {
+
+    const chave =
+        chaveDaLinha(
+            linha
+        );
+
+
+    return carregarAvaliacoes()
+
+        .filter(
+            review =>
+
+                String(
+                    review.linha
+                ) ===
+                chave
+        )
+
+        .sort(
+            (
+                a,
+                b
+            ) =>
+
+                new Date(
+                    b.data
+                ) -
+
+                new Date(
+                    a.data
+                )
+        );
+
+}
+
+
+function calcularMediaReviews(
+    reviews
+) {
+
+    if (!reviews.length) {
+
+        return 0;
+
+    }
+
+
+    return (
+
+        reviews.reduce(
+            (
+                total,
+                review
+            ) =>
+
+                total +
+                Number(
+                    review.nota ||
+                    0
+                ),
+
+            0
+        ) /
+
+        reviews.length
+
+    );
+
+}
+
+
+function estrelasHTML(nota) {
+
+    const valor =
+        Math.round(
+            Number(nota) ||
+            0
+        );
+
+
+    let texto =
+        "";
+
+
+    for (
+        let i = 1;
+        i <= 5;
+        i++
+    ) {
+
+        texto +=
+
+            i <= valor
+
+                ? "★"
+
+                : "☆";
+
+    }
+
+
+    return texto;
+
+}
+
+
+// ============================================================
 // MODAL AVALIAÇÃO
-// ========================================
+// ============================================================
 
 function abrirModalAvaliacao(
     linha,
@@ -1209,55 +4304,87 @@ function abrirModalAvaliacao(
     linhaEmAvaliacao =
         linha;
 
+
     pontoEmAvaliacao =
         ponto;
 
-    notaAtual = 0;
+
+    notaAtual =
+        0;
 
 
-    document
-        .getElementById(
+    const titulo =
+        document.getElementById(
             "tituloAvaliacao"
-        )
-        .textContent =
-
-        `Avaliar linha ${
-            linha.letreiro ||
-            linha.codigo ||
-            ""
-        }`;
+        );
 
 
-    document
-        .getElementById(
+    const subtitulo =
+        document.getElementById(
             "subtituloAvaliacao"
-        )
-        .textContent =
-
-        ponto.np ||
-        ponto.ed ||
-        "Ponto de ônibus";
+        );
 
 
-    document
-        .getElementById(
+    const texto =
+        document.getElementById(
             "textoAvaliacao"
-        )
-        .value = "";
+        );
 
 
-    document
-        .getElementById(
+    const lotacao =
+        document.getElementById(
             "lotacaoAvaliacao"
-        )
-        .value = "";
+        );
 
 
-    document
-        .getElementById(
+    const atraso =
+        document.getElementById(
             "atrasoAvaliacao"
-        )
-        .value = "";
+        );
+
+
+    if (titulo) {
+
+        titulo.textContent =
+
+            `Avaliar ${numeroDaLinha(linha)} → ${destinoDaLinha(linha)}`;
+
+    }
+
+
+    if (subtitulo) {
+
+        subtitulo.textContent =
+
+            ponto?.np ||
+
+            "Ponto de ônibus";
+
+    }
+
+
+    if (texto) {
+
+        texto.value =
+            "";
+
+    }
+
+
+    if (lotacao) {
+
+        lotacao.value =
+            "";
+
+    }
+
+
+    if (atraso) {
+
+        atraso.value =
+            "";
+
+    }
 
 
     atualizarEstrelas();
@@ -1267,17 +4394,13 @@ function abrirModalAvaliacao(
         .getElementById(
             "modalAvaliacao"
         )
-        .classList
+        ?.classList
         .remove(
             "oculto"
         );
 
 }
 
-
-// ========================================
-// FECHAR AVALIAÇÃO
-// ========================================
 
 function fecharModalAvaliacao() {
 
@@ -1293,16 +4416,12 @@ function fecharModalAvaliacao() {
 }
 
 
-// ========================================
-// NOTA
-// ========================================
-
-function definirNota(
-    nota
-) {
+function definirNota(nota) {
 
     notaAtual =
-        Number(nota);
+        Number(
+            nota
+        );
 
 
     atualizarEstrelas();
@@ -1312,54 +4431,50 @@ function definirNota(
 
 function atualizarEstrelas() {
 
-    const botoes =
-        document.querySelectorAll(
+    document
+        .querySelectorAll(
             "#estrelasAvaliacao button"
+        )
+        .forEach(
+            (
+                botao,
+                indice
+            ) => {
+
+                botao.classList.toggle(
+
+                    "ativa",
+
+                    indice <
+                    notaAtual
+
+                );
+
+            }
         );
-
-
-    botoes.forEach(
-        (
-            botao,
-            indice
-        ) => {
-
-            botao.classList.toggle(
-
-                "ativa",
-
-                indice <
-                notaAtual
-
-            );
-
-        }
-    );
 
 }
 
-
-// ========================================
-// ENVIAR REVIEW
-// ========================================
 
 function enviarAvaliacao() {
 
     if (
         !linhaEmAvaliacao
     ) {
+
         return;
+
     }
 
 
     if (
-        notaAtual < 1 ||
-        notaAtual > 5
+        notaAtual < 1
     ) {
 
         alert(
-            "Escolha de 1 a 5 estrelas."
+            "Escolha uma nota."
         );
+
 
         return;
 
@@ -1371,35 +4486,22 @@ function enviarAvaliacao() {
             .getElementById(
                 "textoAvaliacao"
             )
-            .value
+            ?.value
             .trim();
 
 
-    if (!comentario) {
+    if (
+        !comentario
+    ) {
 
         alert(
-            "Escreva seu feedback."
+            "Escreva um comentário."
         );
+
 
         return;
 
     }
-
-
-    const lotacao =
-        document
-            .getElementById(
-                "lotacaoAvaliacao"
-            )
-            .value;
-
-
-    const atraso =
-        document
-            .getElementById(
-                "atrasoAvaliacao"
-            )
-            .value;
 
 
     const reviews =
@@ -1416,20 +4518,45 @@ function enviarAvaliacao() {
                 linhaEmAvaliacao
             ),
 
+        numero:
+            numeroDaLinha(
+                linhaEmAvaliacao
+            ),
+
         destino:
-            linhaEmAvaliacao.destino,
+            destinoDaLinha(
+                linhaEmAvaliacao
+            ),
+
+        sentido:
+            Number(
+                linhaEmAvaliacao.sentido
+            ) || null,
 
         ponto:
-            pontoEmAvaliacao?.np,
+            pontoEmAvaliacao?.np ||
+            "",
 
         nota:
             notaAtual,
 
         comentario,
 
-        lotacao,
+        lotacao:
+            document
+                .getElementById(
+                    "lotacaoAvaliacao"
+                )
+                ?.value ||
+            "",
 
-        atraso,
+        atraso:
+            document
+                .getElementById(
+                    "atrasoAvaliacao"
+                )
+                ?.value ||
+            "",
 
         data:
             new Date()
@@ -1446,54 +4573,22 @@ function enviarAvaliacao() {
     fecharModalAvaliacao();
 
 
-    alert(
-        "Avaliação publicada no BusReview."
-    );
-
-
-    mostrarLinhasDoPontoNovamente();
-
-
     if (
-        linhaReviewsAtual &&
-        chaveDaLinha(
-            linhaReviewsAtual
-        ) ===
-        chaveDaLinha(
-            linhaEmAvaliacao
-        )
+        pontoAbertoAtual
     ) {
 
-        renderizarReviews();
+        buscarLinhasDoPonto(
+            pontoAbertoAtual
+        );
 
     }
 
 }
 
 
-// ========================================
-// RECARREGAR CARDS
-// ========================================
-
-async function mostrarLinhasDoPontoNovamente() {
-
-    if (
-        !pontoEmAvaliacao
-    ) {
-        return;
-    }
-
-
-    await buscarLinhasDoPonto(
-        pontoEmAvaliacao
-    );
-
-}
-
-
-// ========================================
-// ABRIR REVIEWS
-// ========================================
+// ============================================================
+// MODAL DE REVIEWS
+// ============================================================
 
 function abrirModalReviews(
     linha,
@@ -1503,23 +4598,28 @@ function abrirModalReviews(
     linhaReviewsAtual =
         linha;
 
+
     pontoReviewsAtual =
         ponto;
 
-    filtroReviewsAtual = 0;
+
+    filtroReviewsAtual =
+        0;
 
 
-    document
-        .getElementById(
+    const titulo =
+        document.getElementById(
             "tituloReviews"
-        )
-        .textContent =
+        );
 
-        `Avaliações da ${
-            linha.letreiro ||
-            linha.codigo ||
-            "linha"
-        }`;
+
+    if (titulo) {
+
+        titulo.textContent =
+
+            `${numeroDaLinha(linha)} → ${destinoDaLinha(linha)}`;
+
+    }
 
 
     atualizarFiltroVisual();
@@ -1532,17 +4632,13 @@ function abrirModalReviews(
         .getElementById(
             "modalReviews"
         )
-        .classList
+        ?.classList
         .remove(
             "oculto"
         );
 
 }
 
-
-// ========================================
-// FECHAR REVIEWS
-// ========================================
 
 function fecharModalReviews() {
 
@@ -1558,16 +4654,12 @@ function fecharModalReviews() {
 }
 
 
-// ========================================
-// FILTRAR REVIEWS
-// ========================================
-
-function filtrarReviews(
-    nota
-) {
+function filtrarReviews(nota) {
 
     filtroReviewsAtual =
-        Number(nota);
+        Number(
+            nota
+        );
 
 
     atualizarFiltroVisual();
@@ -1577,10 +4669,6 @@ function filtrarReviews(
 
 }
 
-
-// ========================================
-// FILTRO VISUAL
-// ========================================
 
 function atualizarFiltroVisual() {
 
@@ -1608,16 +4696,18 @@ function atualizarFiltroVisual() {
 }
 
 
-// ========================================
+// ============================================================
 // RENDERIZAR REVIEWS
-// ========================================
+// ============================================================
 
 function renderizarReviews() {
 
     if (
         !linhaReviewsAtual
     ) {
+
         return;
+
     }
 
 
@@ -1633,57 +4723,65 @@ function renderizarReviews() {
         );
 
 
-    // MÉDIA
-
-    document
-        .getElementById(
+    const mediaEl =
+        document.getElementById(
             "reviewsMedia"
-        )
-        .textContent =
-
-        todas.length
-
-            ? media
-                .toFixed(1)
-                .replace(
-                    ".",
-                    ","
-                )
-
-            : "0,0";
-
-
-    // ESTRELAS
-
-    document
-        .getElementById(
-            "reviewsEstrelasMedia"
-        )
-        .textContent =
-
-        estrelasHTML(
-            media
         );
 
 
-    // QUANTIDADE
+    const estrelasEl =
+        document.getElementById(
+            "reviewsEstrelasMedia"
+        );
 
-    document
-        .getElementById(
+
+    const quantidadeEl =
+        document.getElementById(
             "reviewsQuantidade"
-        )
-        .textContent =
-
-        `${todas.length} ${
-            todas.length === 1
-                ? "avaliação"
-                : "avaliações"
-        }`;
+        );
 
 
-    // ========================================
-    // DISTRIBUIÇÃO
-    // ========================================
+    if (mediaEl) {
+
+        mediaEl.textContent =
+
+            todas.length
+
+                ? media
+                    .toFixed(1)
+                    .replace(".", ",")
+
+                : "0,0";
+
+    }
+
+
+    if (estrelasEl) {
+
+        estrelasEl.textContent =
+            estrelasHTML(
+                media
+            );
+
+    }
+
+
+    if (quantidadeEl) {
+
+        quantidadeEl.textContent =
+
+            `${todas.length} ${
+
+                todas.length === 1
+
+                    ? "avaliação"
+
+                    : "avaliações"
+
+            }`;
+
+    }
+
 
     const distribuicao =
         document.getElementById(
@@ -1691,68 +4789,72 @@ function renderizarReviews() {
         );
 
 
-    distribuicao.innerHTML = "";
+    if (distribuicao) {
+
+        distribuicao.innerHTML =
+            "";
 
 
-    for (
-        let nota = 5;
-        nota >= 1;
-        nota--
-    ) {
+        for (
+            let nota = 5;
+            nota >= 1;
+            nota--
+        ) {
 
-        const quantidade =
-            todas.filter(
-                review =>
-                    Number(
-                        review.nota
-                    ) === nota
-            ).length;
+            const quantidade =
+                todas.filter(
+                    review =>
 
-
-        const porcentagem =
-            todas.length
-
-                ? (
-                    quantidade /
-                    todas.length
-                ) * 100
-
-                : 0;
+                        Number(
+                            review.nota
+                        ) === nota
+                )
+                .length;
 
 
-        distribuicao.innerHTML += `
+            const porcentagem =
 
-            <div class="distribuicao-linha">
+                todas.length
 
-                <span>
-                    ${nota}★
-                </span>
+                    ? (
+                        quantidade /
+                        todas.length
+                    ) * 100
 
-                <div class="distribuicao-barra">
+                    : 0;
 
-                    <div
-                        class="distribuicao-preenchimento"
-                        style="
-                            width:${porcentagem}%;
-                        "
-                    ></div>
+
+            distribuicao.innerHTML += `
+
+                <div class="distribuicao-linha">
+
+                    <span>
+                        ${nota}★
+                    </span>
+
+
+                    <div class="distribuicao-barra">
+
+                        <div
+                            class="distribuicao-preenchimento"
+                            style="width:${porcentagem}%"
+                        ></div>
+
+                    </div>
+
+
+                    <span>
+                        ${quantidade}
+                    </span>
 
                 </div>
 
-                <span>
-                    ${quantidade}
-                </span>
+            `;
 
-            </div>
-
-        `;
+        }
 
     }
 
-
-    // ========================================
-    // FILTRAGEM
-    // ========================================
 
     const filtradas =
 
@@ -1762,6 +4864,7 @@ function renderizarReviews() {
 
             : todas.filter(
                 review =>
+
                     Number(
                         review.nota
                     ) ===
@@ -1775,45 +4878,36 @@ function renderizarReviews() {
         );
 
 
-    lista.innerHTML = "";
-
-
-    // ========================================
-    // SEM REVIEWS
-    // ========================================
-
-    if (
-        filtradas.length === 0
-    ) {
-
-        lista.innerHTML = `
-
-            <div class="sem-reviews">
-
-                <strong>
-                    Nenhuma avaliação encontrada
-                </strong>
-
-                ${
-                    todas.length === 0
-
-                        ? "Seja a primeira pessoa a avaliar esta linha."
-
-                        : "Não existem avaliações com essa quantidade de estrelas."
-                }
-
-            </div>
-
-        `;
+    if (!lista) {
 
         return;
 
     }
 
 
-    // ========================================
-    // CADA REVIEW
-    // ========================================
+    lista.innerHTML =
+        "";
+
+
+    if (
+        !filtradas.length
+    ) {
+
+        lista.innerHTML = `
+
+            <div class="sem-reviews">
+
+                Nenhuma avaliação ainda.
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
 
     filtradas.forEach(
         review => {
@@ -1831,16 +4925,14 @@ function renderizarReviews() {
             const data =
                 new Date(
                     review.data
-                );
-
-
-            const dataTexto =
-                data.toLocaleDateString(
+                )
+                .toLocaleDateString(
                     "pt-BR"
                 );
 
 
-            let tags = "";
+            let tags =
+                "";
 
 
             if (
@@ -1850,7 +4942,12 @@ function renderizarReviews() {
                 tags += `
 
                     <span class="review-tag">
-                        Lotação: ${escaparHTML(review.lotacao)}
+
+                        Lotação:
+                        ${escaparHTML(
+                            review.lotacao
+                        )}
+
                     </span>
 
                 `;
@@ -1865,7 +4962,12 @@ function renderizarReviews() {
                 tags += `
 
                     <span class="review-tag">
-                        Atraso: ${escaparHTML(review.atraso)}
+
+                        Atraso:
+                        ${escaparHTML(
+                            review.atraso
+                        )}
+
                     </span>
 
                 `;
@@ -1877,22 +4979,22 @@ function renderizarReviews() {
 
                 <div class="review-topo">
 
-                    <div class="review-estrelas">
+                    <span class="review-estrelas">
 
                         ${estrelasHTML(
                             review.nota
                         )}
 
-                    </div>
+                    </span>
 
 
-                    <div class="review-data">
+                    <span class="review-data">
 
                         ${escaparHTML(
-                            dataTexto
+                            data
                         )}
 
-                    </div>
+                    </span>
 
                 </div>
 
@@ -1908,11 +5010,15 @@ function renderizarReviews() {
 
                 ${
                     tags
+
                         ? `
                             <div class="review-tags">
+
                                 ${tags}
+
                             </div>
                         `
+
                         : ""
                 }
 
@@ -1929,21 +5035,24 @@ function renderizarReviews() {
 }
 
 
-// ========================================
+// ============================================================
 // AVALIAR PELO MODAL DE REVIEWS
-// ========================================
+// ============================================================
 
 function avaliarPeloModalReviews() {
 
     if (
         !linhaReviewsAtual
     ) {
+
         return;
+
     }
 
 
     const linha =
         linhaReviewsAtual;
+
 
     const ponto =
         pontoReviewsAtual;
@@ -1960,8 +5069,60 @@ function avaliarPeloModalReviews() {
 }
 
 
-// ========================================
-// INICIAR
-// ========================================
+// ============================================================
+// INICIAR BUSREVIEW
+// ============================================================
 
-obterLocalizacaoReal();
+function iniciarBusReview() {
+
+    console.log(
+        "BUSREVIEW INICIADO"
+    );
+
+
+    renderizarLugaresMenu();
+
+
+    setTimeout(
+        () => {
+
+            map.invalidateSize();
+
+        },
+        100
+    );
+
+
+    obterLocalizacaoReal();
+
+}
+
+
+// ============================================================
+// START
+// ============================================================
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+
+        "DOMContentLoaded",
+
+        iniciarBusReview,
+
+        {
+            once: true
+        }
+
+    );
+
+}
+
+else {
+
+    iniciarBusReview();
+
+}

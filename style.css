@@ -1,7 +1,3 @@
-/* ========================================
-   RESET
-======================================== */
-
 * {
     box-sizing: border-box;
 }
@@ -10,24 +6,24 @@ html,
 body {
     width: 100%;
     height: 100%;
+
     margin: 0;
-    padding: 0;
 
     overflow: hidden;
 
     font-family:
-        Inter,
         Arial,
         Helvetica,
         sans-serif;
 
-    background: #07111f;
+    background: #0d1017;
     color: white;
 }
 
 button,
-select,
-textarea {
+input,
+textarea,
+select {
     font: inherit;
 }
 
@@ -38,127 +34,476 @@ textarea {
 
 #map {
     position: fixed;
+
     inset: 0;
+
     z-index: 1;
 }
 
 
 /* ========================================
-   LOGO
+   TOPO
 ======================================== */
 
-.logo {
+.topo {
     position: fixed;
 
-    top: 20px;
-    left: 20px;
+    z-index: 1000;
 
-    z-index: 500;
+    top: 16px;
+    left: 16px;
+    right: 16px;
 
     display: flex;
-    align-items: center;
+    justify-content: space-between;
 
-    gap: 10px;
+    pointer-events: none;
+}
 
-    padding: 11px 15px;
+.marca {
+    pointer-events: auto;
 
-    border-radius: 14px;
+    padding: 12px 17px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .09);
+
+    border-radius: 16px;
 
     background:
-        rgba(9, 18, 33, 0.92);
+        rgba(15, 18, 25, .95);
 
-    backdrop-filter: blur(10px);
+    font-size: 20px;
+    font-weight: 900;
 
     box-shadow:
-        0 8px 30px rgba(0, 0, 0, 0.28);
-
-    font-weight: 800;
+        0 10px 30px
+        rgba(0, 0, 0, .4);
 }
 
-.logo-icone {
-    display: flex;
-
-    width: 32px;
-    height: 32px;
-
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 9px;
-
-    background: #5271ff;
+.marca span,
+.menu-logo span {
+    color: #5271ff;
 }
 
-
-/* ========================================
-   RAIO
-======================================== */
-
-.radius-info {
-    position: fixed;
-
-    top: 20px;
-    right: 20px;
-
-    z-index: 500;
-
-    display: flex;
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 11px 14px;
-
-    border-radius: 14px;
-
-    background:
-        rgba(9, 18, 33, 0.92);
-
-    color: #d4d8e0;
-
-    font-size: 13px;
-
-    backdrop-filter: blur(10px);
-}
-
-.location-dot {
-    width: 8px;
-    height: 8px;
-
-    border-radius: 50%;
-
-    background: #5271ff;
-}
-
-
-/* ========================================
-   BOTÃO LOCALIZAÇÃO
-======================================== */
-
-.location-button {
-    position: fixed;
-
-    right: 20px;
-    bottom: 25px;
-
-    z-index: 500;
+.botao-menu {
+    pointer-events: auto;
 
     width: 48px;
     height: 48px;
 
-    border: 0;
+    border: none;
+    border-radius: 15px;
+
+    background:
+        rgba(15, 18, 25, .96);
+
+    color: white;
+
+    font-size: 26px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, .4);
+}
+
+
+/* ========================================
+   LOCALIZAÇÃO
+======================================== */
+
+.botao-localizacao {
+    position: fixed;
+
+    z-index: 900;
+
+    right: 18px;
+    bottom: 22px;
+
+    width: 52px;
+    height: 52px;
+
+    border: none;
     border-radius: 50%;
 
     background: #5271ff;
 
     color: white;
 
+    font-size: 21px;
+
     cursor: pointer;
 
-    font-size: 19px;
+    box-shadow:
+        0 8px 30px
+        rgba(82, 113, 255, .45);
+}
+
+
+/* ========================================
+   MENU
+======================================== */
+
+.menu-fundo {
+    position: fixed;
+
+    z-index: 1900;
+
+    inset: 0;
+
+    background:
+        rgba(0, 0, 0, .55);
+}
+
+.menu-lateral {
+    position: fixed;
+
+    z-index: 2000;
+
+    top: 0;
+    right: 0;
+
+    width: 370px;
+    max-width: 92vw;
+
+    height: 100%;
+
+    padding: 22px;
+
+    overflow-y: auto;
+
+    background: #11141c;
+
+    border-left:
+        1px solid
+        rgba(255, 255, 255, .08);
+
+    transform:
+        translateX(110%);
+
+    transition:
+        transform .25s ease;
 
     box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.35);
+        -20px 0 50px
+        rgba(0, 0, 0, .5);
+}
+
+.menu-lateral.aberto {
+    transform:
+        translateX(0);
+}
+
+.menu-cabecalho {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 28px;
+}
+
+.menu-logo {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.menu-cabecalho small {
+    display: block;
+
+    margin-top: 4px;
+
+    color:
+        rgba(255, 255, 255, .45);
+}
+
+.menu-fechar,
+.botao-fechar,
+.modal-fechar {
+    width: 40px;
+    height: 40px;
+
+    border: none;
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, .07);
+
+    color: white;
+
+    font-size: 25px;
+
+    cursor: pointer;
+}
+
+.menu-titulo {
+    margin:
+        0 0 10px 5px;
+
+    color:
+        rgba(255, 255, 255, .35);
+
+    font-size: 11px;
+    font-weight: 900;
+
+    letter-spacing: .12em;
+}
+
+.menu-divisor {
+    height: 1px;
+
+    margin:
+        24px 0;
+
+    background:
+        rgba(255, 255, 255, .07);
+}
+
+.menu-item-simples {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 6px;
+
+    padding: 12px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: transparent;
+
+    color: white;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.menu-item-simples:hover {
+    background:
+        rgba(255, 255, 255, .05);
+}
+
+.menu-item-simples > span:first-child {
+    width: 42px;
+    height: 42px;
+
+    flex: 0 0 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background:
+        rgba(82, 113, 255, .12);
+
+    font-size: 19px;
+}
+
+.menu-item-simples div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.menu-item-simples strong {
+    font-size: 14px;
+}
+
+.menu-item-simples small {
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 11px;
+}
+
+.contador-reclamacoes {
+    display: inline-flex;
+
+    min-width: 20px;
+    height: 20px;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 5px;
+
+    padding:
+        0 6px;
+
+    border-radius: 999px;
+
+    background: #ff5058;
+
+    color: white;
+
+    font-size: 10px;
+}
+
+
+/* ========================================
+   LUGARES
+======================================== */
+
+.menu-vazio {
+    padding: 15px;
+
+    border-radius: 14px;
+
+    background:
+        rgba(255, 255, 255, .035);
+
+    color:
+        rgba(255, 255, 255, .5);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+.lugar-menu-card {
+    display: flex;
+
+    gap: 5px;
+
+    margin-bottom: 7px;
+}
+
+.lugar-menu-principal {
+    min-width: 0;
+
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 11px;
+
+    border:
+        1px solid
+        transparent;
+
+    border-radius: 15px;
+
+    background: transparent;
+
+    color: white;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.lugar-menu-principal:hover {
+    border-color:
+        rgba(255, 255, 255, .08);
+
+    background:
+        rgba(255, 255, 255, .05);
+}
+
+.lugar-menu-editar {
+    width: 38px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: transparent;
+
+    color:
+        rgba(255, 255, 255, .5);
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.menu-item-icone {
+    width: 43px;
+    height: 43px;
+
+    flex:
+        0 0 43px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+
+    background:
+        rgba(82, 113, 255, .12);
+
+    font-size: 20px;
+}
+
+.menu-item-textos {
+    min-width: 0;
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.menu-item-textos strong {
+    font-size: 14px;
+}
+
+.menu-item-textos small {
+    overflow: hidden;
+
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 11px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu-seta {
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size: 24px;
+}
+
+.botao-adicionar-lugar {
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 13px;
+
+    border:
+        1px dashed
+        rgba(82, 113, 255, .55);
+
+    border-radius: 14px;
+
+    background:
+        rgba(82, 113, 255, .08);
+
+    color: #aab7ff;
+
+    font-weight: 800;
+
+    cursor: pointer;
 }
 
 
@@ -166,310 +511,616 @@ textarea {
    MARCADORES
 ======================================== */
 
+.stop-marker {
+    width: 18px;
+    height: 18px;
+
+    border:
+        3px solid white;
+
+    border-radius: 50%;
+
+    background: #5271ff;
+
+    box-shadow:
+        0 2px 12px
+        rgba(82, 113, 255, .8);
+}
+
 .user-marker {
     width: 18px;
     height: 18px;
 
+    border:
+        4px solid #5271ff;
+
     border-radius: 50%;
 
-    background: #5271ff;
-
-    border: 4px solid white;
+    background: white;
 
     box-shadow:
-        0 0 0 5px rgba(82, 113, 255, 0.2);
+        0 0 0 7px
+        rgba(82, 113, 255, .2);
 }
 
-.stop-marker {
-    width: 16px;
-    height: 16px;
+.destination-marker {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border:
+        3px solid white;
 
     border-radius: 50%;
 
     background: #5271ff;
 
-    border: 3px solid white;
+    font-size: 21px;
 
     box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.45);
+        0 5px 20px
+        rgba(0, 0, 0, .5);
+}
+
+.temp-place-marker {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border:
+        3px solid white;
+
+    border-radius: 50%;
+
+    background: #5271ff;
+
+    color: white;
+
+    font-size: 23px;
+    font-weight: 900;
 }
 
 
 /* ========================================
-   PAINEL
+   AVISO MAPA
 ======================================== */
 
-.painel-ponto {
+.aviso-mapa {
     position: fixed;
 
-    top: 0;
-    right: 0;
+    z-index: 1700;
 
-    width: 390px;
-    max-width: 94vw;
-    height: 100vh;
+    left: 50%;
+    bottom: 22px;
 
-    z-index: 1000;
+    transform:
+        translateX(-50%);
 
-    background: #0d1726;
+    width:
+        calc(100% - 30px);
 
-    box-shadow:
-        -15px 0 40px rgba(0, 0, 0, 0.38);
+    max-width: 520px;
 
-    transform: translateX(105%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-    transition:
-        transform 0.25s ease;
+    gap: 15px;
 
-    overflow-y: auto;
+    padding: 14px 16px;
+
+    border:
+        1px solid
+        rgba(82, 113, 255, .7);
+
+    border-radius: 18px;
+
+    background:
+        rgba(17, 20, 28, .98);
 }
 
-.painel-ponto.aberto {
-    transform: translateX(0);
+.aviso-mapa div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
 }
 
-.painel-conteudo {
-    padding: 70px 22px 30px;
+.aviso-mapa small {
+    color:
+        rgba(255, 255, 255, .5);
 }
 
-.fechar-painel {
-    position: absolute;
+.aviso-mapa button {
+    border: none;
 
-    top: 18px;
-    right: 18px;
+    background: transparent;
 
-    width: 38px;
-    height: 38px;
+    color: #9badff;
 
-    border: 0;
-    border-radius: 50%;
-
-    background: #1a2738;
-
-    color: white;
-
-    font-size: 25px;
+    font-weight: 800;
 
     cursor: pointer;
 }
 
-.painel-etiqueta,
-.modal-etiqueta {
-    color: #7184a1;
-
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: 1.1px;
-}
-
-.painel-ponto h2 {
-    margin:
-        8px 0 8px;
-
-    font-size: 24px;
-}
-
-.painel-ponto p {
-    margin: 0;
-
-    color: #9ba7b7;
-
-    line-height: 1.5;
-}
-
-.painel-ponto h3 {
-    margin:
-        20px 0 15px;
-
-    font-size: 17px;
-}
-
-.separador {
-    height: 1px;
-
-    margin: 20px 0;
-
-    background:
-        rgba(255, 255, 255, 0.08);
-}
-
-.carregando {
-    padding: 20px 0;
-
-    text-align: center;
-
-    color: #8793a5;
-}
-
 
 /* ========================================
-   CARDS DAS LINHAS
+   PAINÉIS
 ======================================== */
 
-.linha-onibus-card {
-    margin-bottom: 15px;
+.painel-lateral {
+    position: fixed;
 
-    padding: 16px;
+    z-index: 1100;
 
-    border-radius: 18px;
+    top: 0;
+    right: 0;
 
-    background: #162232;
+    width: 430px;
+    max-width: 100%;
 
-    border:
-        1px solid rgba(255, 255, 255, 0.07);
+    height: 100%;
+
+    padding: 23px;
+
+    overflow-y: auto;
+
+    border-left:
+        1px solid
+        rgba(255, 255, 255, .08);
+
+    background:
+        rgba(13, 16, 23, .98);
+
+    box-shadow:
+        -20px 0 50px
+        rgba(0, 0, 0, .45);
 }
 
-.linha-cabecalho {
+.painel-topo {
     display: flex;
 
     justify-content: space-between;
     align-items: flex-start;
 
     gap: 12px;
+
+    margin-bottom: 20px;
 }
 
-.linha-numero {
-    color: white;
+.painel-topo h2 {
+    margin:
+        3px 0 0;
 
     font-size: 21px;
-    font-weight: 900;
 }
 
-.linha-destino {
-    margin-top: 5px;
+.painel-topo p {
+    margin:
+        6px 0 0;
 
-    color: #a6b0bf;
-
-    font-size: 13px;
-}
-
-.linha-qtd {
-    color: #7e8999;
-
-    font-size: 11px;
-
-    white-space: nowrap;
-}
-
-.linha-avaliacao-resumo {
-    display: flex;
-    align-items: center;
-
-    flex-wrap: wrap;
-
-    gap: 6px;
-
-    margin-top: 12px;
-}
-
-.estrelas-pequenas {
-    color: #ffc83d;
-
-    letter-spacing: 1px;
-
-    font-size: 15px;
-}
-
-.nota-media {
-    font-weight: 800;
-
-    font-size: 13px;
-}
-
-.quantidade-avaliacoes {
-    color: #7f8998;
+    color:
+        rgba(255, 255, 255, .48);
 
     font-size: 12px;
 }
 
-.titulo-previsoes {
-    margin-top: 15px;
-
-    color: #7e8999;
+.painel-label {
+    color: #8fa4ff;
 
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 900;
 
-    letter-spacing: 0.8px;
+    letter-spacing: .12em;
 }
 
+
+/* ========================================
+   CARDS DE LINHA
+======================================== */
+
+.linha-onibus-card,
+.rota-card {
+    margin-bottom: 14px;
+
+    padding: 17px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07);
+
+    border-radius: 18px;
+
+    background: #181b24;
+}
+
+.linha-cabecalho {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+.linha-destino-destaque {
+    margin-bottom: 5px;
+
+    color: #8ea4ff;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.linha-numero,
+.rota-linha-numero {
+    font-size: 25px;
+    font-weight: 900;
+}
+
+.linha-destino,
+.rota-linha-destino {
+    margin-top: 4px;
+
+    color:
+        rgba(255, 255, 255, .52);
+
+    font-size: 12px;
+}
+
+.linha-qtd {
+    height: fit-content;
+
+    padding: 7px 9px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(82, 113, 255, .12);
+
+    color: #a1b0ff;
+
+    font-size: 10px;
+}
+
+.linha-avaliacao-resumo {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 14px;
+
+    font-size: 12px;
+}
+
+.estrelas-pequenas,
+.review-estrelas {
+    color: #ffc94a;
+}
+
+.quantidade-avaliacoes {
+    color:
+        rgba(255, 255, 255, .4);
+}
+
+.titulo-previsoes {
+    margin:
+        17px 0 9px;
+
+    color:
+        rgba(255, 255, 255, .38);
+
+    font-size: 10px;
+    font-weight: 900;
+
+    letter-spacing: .1em;
+}
+
+
+/* ========================================
+   PREVISÕES
+======================================== */
+
 .previsao-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 7px;
+
+    padding: 11px 12px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, .035);
+}
+
+.previsao-horario {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.previsao-label {
+    margin-top: 2px;
+
+    font-size: 10px;
+
+    color:
+        rgba(255, 255, 255, .48);
+}
+
+.previsao-minutos {
+    font-weight: 900;
+}
+
+.previsao-verde {
+    border-left:
+        4px solid #43d77b;
+}
+
+.previsao-verde
+.previsao-horario,
+.previsao-verde
+.previsao-minutos,
+.rota-chegada.previsao-verde {
+    color: #43d77b;
+}
+
+.previsao-vermelha {
+    border-left:
+        4px solid #ff5058;
+}
+
+.previsao-vermelha
+.previsao-horario,
+.previsao-vermelha
+.previsao-minutos,
+.rota-chegada.previsao-vermelha {
+    color: #ff5058;
+}
+
+.previsao-amarela {
+    border-left:
+        4px solid #ffd54a;
+}
+
+.previsao-amarela
+.previsao-horario,
+.previsao-amarela
+.previsao-minutos,
+.previsao-amarela
+.previsao-label,
+.rota-chegada.previsao-amarela {
+    color: #ffd54a;
+}
+
+
+/* ========================================
+   ROTAS
+======================================== */
+
+.rota-card-topo {
     display: flex;
 
     justify-content: space-between;
     align-items: center;
 
-    gap: 12px;
-
-    margin-top: 9px;
-
-    padding: 11px 12px;
-
-    border-radius: 11px;
-
-    background: #0e1724;
+    margin-bottom: 12px;
 }
 
-.previsao-horario {
-    color: white;
+.rota-ranking {
+    color: #8fa4ff;
 
-    font-weight: 750;
+    font-size: 10px;
+    font-weight: 900;
+
+    letter-spacing: .1em;
 }
 
-.previsao-label {
-    margin-top: 3px;
+.rota-chegada {
+    font-size: 14px;
+    font-weight: 900;
+}
 
-    color: #718095;
+.rota-sem-previsao {
+    color:
+        rgba(255, 255, 255, .4);
 
     font-size: 11px;
 }
 
-.previsao-minutos {
-    color: #62db72;
-
-    font-size: 16px;
-    font-weight: 900;
+.rota-etapas {
+    margin-top: 17px;
 }
 
-.acoes-linha {
-    display: grid;
+.rota-etapa {
+    display: flex;
 
-    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+
+    padding:
+        10px 0;
+
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, .05);
+}
+
+.rota-etapa > span {
+    width: 26px;
+
+    font-size: 18px;
+}
+
+.rota-etapa div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.rota-etapa strong {
+    font-size: 12px;
+}
+
+.rota-etapa small {
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 10px;
+}
+
+.rota-acoes {
+    display: flex;
 
     gap: 8px;
 
     margin-top: 14px;
 }
 
-.botao-avaliar,
-.botao-reviews {
-    min-height: 42px;
+.botao-ver-ponto-rota,
+.botao-reclamar-rota {
+    flex: 1;
 
-    border-radius: 11px;
+    padding: 11px;
 
-    cursor: pointer;
+    border: none;
+    border-radius: 12px;
 
     font-weight: 800;
 
-    font-size: 12px;
+    cursor: pointer;
 }
 
-.botao-avaliar {
-    border: 0;
+.botao-ver-ponto-rota {
+    background:
+        rgba(82, 113, 255, .15);
 
+    color: #aab7ff;
+}
+
+.botao-reclamar-rota {
+    background:
+        rgba(255, 80, 88, .1);
+
+    color: #ff7d83;
+}
+
+.rota-vazio {
+    padding: 18px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, .035);
+
+    color:
+        rgba(255, 255, 255, .55);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/* ========================================
+   BOTÕES LINHA
+======================================== */
+
+.acoes-linha {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 8px;
+
+    margin-top: 14px;
+}
+
+.botao-reviews,
+.botao-avaliar,
+.botao-reclamar,
+.botao-principal,
+.botao-secundario {
+    border: none;
+    border-radius: 12px;
+
+    padding: 11px 13px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.botao-reviews,
+.botao-secundario {
+    background:
+        rgba(255, 255, 255, .07);
+
+    color: white;
+}
+
+.botao-avaliar,
+.botao-principal {
     background: #5271ff;
 
     color: white;
 }
 
-.botao-reviews {
+.botao-reclamar {
+    grid-column:
+        1 / -1;
+
+    background:
+        rgba(255, 80, 88, .09);
+
+    color: #ff7d83;
+
     border:
-        1px solid rgba(255, 255, 255, 0.13);
+        1px solid
+        rgba(255, 80, 88, .16);
+}
 
-    background: transparent;
+.botao-principal {
+    width: 100%;
 
-    color: #d9dfeb;
+    margin-top: 16px;
+}
+
+.botao-largura-total {
+    width: 100%;
+
+    margin-top: 12px;
+}
+
+.botao-excluir {
+    width: 100%;
+
+    margin-top: 9px;
+
+    padding: 11px;
+
+    border:
+        1px solid
+        rgba(255, 80, 88, .3);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 80, 88, .07);
+
+    color: #ff747a;
+
+    cursor: pointer;
 }
 
 
@@ -477,287 +1128,474 @@ textarea {
    MODAIS
 ======================================== */
 
-.modal {
+.modal-fundo {
     position: fixed;
-
-    inset: 0;
 
     z-index: 3000;
 
-    display: flex;
+    inset: 0;
 
-    justify-content: center;
+    display: flex;
     align-items: center;
+    justify-content: center;
 
     padding: 18px;
 
     background:
-        rgba(0, 0, 0, 0.67);
-
-    backdrop-filter: blur(5px);
+        rgba(0, 0, 0, .72);
 }
 
-.modal.oculto {
-    display: none;
-}
+.modal {
+    position: relative;
 
-.modal-caixa {
     width: 100%;
-    max-width: 470px;
+    max-width: 520px;
+
     max-height: 90vh;
 
     overflow-y: auto;
 
-    padding: 22px;
+    padding: 23px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .08);
 
     border-radius: 22px;
 
-    background: #101b2a;
-
-    box-shadow:
-        0 25px 70px rgba(0, 0, 0, 0.5);
+    background: #171a23;
 }
 
-.modal-reviews {
-    max-width: 550px;
+.modal-grande {
+    max-width: 680px;
 }
 
-.modal-topo {
+.modal h2 {
+    margin:
+        0 45px 5px 0;
+}
+
+.modal > p {
+    color:
+        rgba(255, 255, 255, .5);
+}
+
+.modal-fechar {
+    position: absolute;
+
+    top: 14px;
+    right: 14px;
+}
+
+.modal label {
+    display: block;
+
+    margin-top: 14px;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
+    width: 100%;
+
+    margin-top: 7px;
+
+    padding: 12px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .1);
+
+    border-radius: 12px;
+
+    outline: none;
+
+    background: #0e1118;
+
+    color: white;
+}
+
+.modal textarea {
+    min-height: 110px;
+
+    resize: vertical;
+}
+
+.ou {
+    margin: 14px 0;
+
+    color:
+        rgba(255, 255, 255, .3);
+
+    font-size: 11px;
+
+    text-align: center;
+}
+
+.botoes-local-lugar {
+    display: flex;
+
+    gap: 8px;
+}
+
+.coordenadas-lugar,
+.status-endereco {
+    margin-top: 10px;
+
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 11px;
+}
+
+.coordenadas-lugar.definido {
+    color: #43d77b;
+}
+
+
+/* ========================================
+   RECLAMAÇÃO
+======================================== */
+
+.reclamacao-titulo-icone {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 13px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 80, 88, .1);
+
+    font-size: 23px;
+}
+
+.reclamacao-linha {
+    margin-top: 12px;
+
+    padding: 13px;
+
+    border-radius: 13px;
+
+    background:
+        rgba(82, 113, 255, .1);
+
+    color: #aeb9ff;
+
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.aviso-oficial {
+    margin-top: 14px;
+
+    padding: 13px;
+
+    border:
+        1px solid
+        rgba(82, 113, 255, .18);
+
+    border-radius: 14px;
+
+    background:
+        rgba(82, 113, 255, .06);
+}
+
+.aviso-oficial strong {
+    color: #aeb9ff;
+
+    font-size: 12px;
+}
+
+.aviso-oficial p {
+    margin:
+        5px 0 0;
+
+    color:
+        rgba(255, 255, 255, .55);
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+.campos-duplos {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+}
+
+.ajuda-campo {
+    display: block;
+
+    margin-top: 5px;
+
+    color:
+        rgba(255, 255, 255, .4);
+
+    font-size: 10px;
+
+    font-weight: normal;
+}
+
+.texto-explicativo {
+    display: block;
+
+    margin-top: 10px;
+
+    color:
+        rgba(255, 255, 255, .38);
+
+    font-size: 10px;
+
+    line-height: 1.4;
+}
+
+
+/* ========================================
+   HISTÓRICO RECLAMAÇÕES
+======================================== */
+
+.reclamacoes-vazio {
+    padding: 20px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, .035);
+
+    color:
+        rgba(255, 255, 255, .5);
+
+    text-align: center;
+
+    font-size: 12px;
+}
+
+.reclamacao-card {
+    margin-top: 13px;
+
+    padding: 16px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, .07);
+
+    border-radius: 17px;
+
+    background: #11141c;
+}
+
+.reclamacao-card-topo {
     display: flex;
 
     justify-content: space-between;
     align-items: flex-start;
 
-    gap: 15px;
+    gap: 10px;
 }
 
-.modal-topo h2 {
-    margin:
-        6px 0 3px;
+.reclamacao-card-topo > div {
+    min-width: 0;
 
-    font-size: 22px;
-}
-
-.modal-topo p {
-    margin: 0;
-
-    color: #8c98aa;
-
-    font-size: 13px;
-}
-
-.modal-fechar {
-    flex-shrink: 0;
-
-    width: 38px;
-    height: 38px;
-
-    border: 0;
-    border-radius: 50%;
-
-    background: #1b293b;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 25px;
-}
-
-
-/* ========================================
-   ESTRELAS AVALIAÇÃO
-======================================== */
-
-.avaliacao-pergunta {
-    margin-top: 24px;
-
-    font-weight: 750;
-}
-
-.estrelas-grandes {
     display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.reclamacao-card-topo small {
+    color: #ff858b;
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.reclamacao-card-topo strong {
+    font-size: 15px;
+}
+
+.status-reclamacao {
+    flex:
+        0 0 auto;
+
+    padding: 6px 8px;
+
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.status-reclamacao.aguardando {
+    background:
+        rgba(255, 213, 74, .1);
+
+    color: #ffd54a;
+}
+
+.status-reclamacao.com-protocolo {
+    background:
+        rgba(67, 215, 123, .1);
+
+    color: #43d77b;
+}
+
+.reclamacao-dados {
+    display: flex;
+    flex-direction: column;
 
     gap: 5px;
 
+    margin-top: 12px;
+
+    color:
+        rgba(255, 255, 255, .48);
+
+    font-size: 10px;
+}
+
+.reclamacao-card p {
     margin:
-        10px 0 22px;
+        12px 0;
+
+    color:
+        rgba(255, 255, 255, .7);
+
+    font-size: 12px;
+
+    line-height: 1.5;
 }
 
-.estrelas-grandes button {
-    padding: 0;
-
-    border: 0;
-
-    background: transparent;
-
-    color: #3f4c5e;
-
-    cursor: pointer;
-
-    font-size: 38px;
-
-    transition:
-        transform 0.12s ease,
-        color 0.12s ease;
+.campo-protocolo {
+    margin-top: 12px !important;
 }
 
-.estrelas-grandes button:hover {
-    transform: scale(1.08);
-}
-
-.estrelas-grandes button.ativa {
-    color: #ffc83d;
-}
-
-
-/* ========================================
-   CAMPOS
-======================================== */
-
-.campo-grupo {
-    margin-top: 15px;
-}
-
-.campo-grupo label {
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #bac3cf;
-
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.campo-grupo select,
-.campo-grupo textarea {
-    width: 100%;
-
-    border:
-        1px solid rgba(255, 255, 255, 0.08);
-
-    outline: none;
-
-    border-radius: 12px;
-
-    background: #182536;
-
-    color: white;
-}
-
-.campo-grupo select {
-    height: 46px;
-
-    padding:
-        0 12px;
-}
-
-.campo-grupo textarea {
-    min-height: 115px;
-
-    padding: 13px;
-
-    resize: vertical;
-}
-
-.campo-grupo select:focus,
-.campo-grupo textarea:focus {
-    border-color: #5271ff;
-}
-
-.botao-principal {
-    width: 100%;
-
-    min-height: 48px;
-
-    margin-top: 20px;
-
-    border: 0;
-    border-radius: 12px;
-
-    background: #5271ff;
-
-    color: white;
-
-    cursor: pointer;
-
-    font-weight: 850;
-}
-
-
-/* ========================================
-   RESUMO REVIEWS
-======================================== */
-
-.reviews-resumo {
+.reclamacao-acoes {
     display: grid;
 
     grid-template-columns:
-        140px 1fr;
+        1fr 1fr;
 
-    gap: 20px;
+    gap: 7px;
 
-    margin-top: 22px;
-
-    padding: 17px;
-
-    border-radius: 16px;
-
-    background: #172435;
+    margin-top: 11px;
 }
 
-.reviews-nota-grande {
-    display: flex;
+.reclamacao-acoes button {
+    padding: 10px;
 
-    flex-direction: column;
+    border: none;
+    border-radius: 11px;
 
-    justify-content: center;
-}
+    background:
+        rgba(255, 255, 255, .06);
 
-.reviews-nota-grande strong {
-    font-size: 38px;
-}
-
-.estrelas-resumo {
-    margin-top: 3px;
-
-    color: #ffc83d;
-
-    letter-spacing: 1px;
-}
-
-.reviews-nota-grande span {
-    margin-top: 5px;
-
-    color: #8d99aa;
+    color: white;
 
     font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
 }
 
-.reviews-distribuicao {
+.reclamacao-acoes
+.acompanhar-sp156 {
+    background:
+        rgba(82, 113, 255, .13);
+
+    color: #aab7ff;
+}
+
+.reclamacao-acoes
+.excluir-reclamacao {
+    color: #ff777d;
+}
+
+
+/* ========================================
+   AVALIAÇÕES
+======================================== */
+
+.estrelas-avaliacao {
     display: flex;
 
-    flex-direction: column;
+    margin: 17px 0;
+}
 
-    justify-content: center;
+.estrelas-avaliacao button {
+    padding: 2px;
 
-    gap: 5px;
+    border: none;
+
+    background: transparent;
+
+    color: #555;
+
+    font-size: 35px;
+
+    cursor: pointer;
+}
+
+.estrelas-avaliacao
+button.ativa {
+    color: #ffc94a;
+}
+
+.reviews-resumo {
+    padding: 15px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, .04);
+
+    text-align: center;
+}
+
+.reviews-resumo strong {
+    display: block;
+
+    font-size: 35px;
+}
+
+#reviewsEstrelasMedia {
+    color: #ffc94a;
+
+    font-size: 21px;
+}
+
+#reviewsQuantidade {
+    color:
+        rgba(255, 255, 255, .45);
+
+    font-size: 11px;
 }
 
 .distribuicao-linha {
     display: grid;
 
     grid-template-columns:
-        30px 1fr 26px;
+        30px 1fr 30px;
+
+    gap: 8px;
+
+    margin-top: 8px;
 
     align-items: center;
 
-    gap: 7px;
-
     font-size: 11px;
-
-    color: #9faaba;
 }
 
 .distribuicao-barra {
@@ -767,150 +1605,115 @@ textarea {
 
     border-radius: 10px;
 
-    background: #263548;
+    background:
+        rgba(255, 255, 255, .08);
 }
 
 .distribuicao-preenchimento {
     height: 100%;
 
-    border-radius: inherit;
-
-    background: #ffc83d;
+    background: #ffc94a;
 }
-
-
-/* ========================================
-   FILTROS
-======================================== */
 
 .filtros-reviews {
     display: flex;
 
-    gap: 7px;
-
-    margin:
-        17px 0;
+    gap: 6px;
 
     overflow-x: auto;
 
-    padding-bottom: 3px;
+    margin:
+        17px 0 10px;
 }
 
 .filtros-reviews button {
-    flex-shrink: 0;
-
-    padding:
-        8px 11px;
+    padding: 8px 11px;
 
     border:
-        1px solid rgba(255, 255, 255, 0.09);
+        1px solid
+        rgba(255, 255, 255, .1);
 
-    border-radius: 9px;
-
-    background: #182536;
-
-    color: #b9c2ce;
-
-    cursor: pointer;
-
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.filtros-reviews button.ativo {
-    border-color: #5271ff;
+    border-radius: 999px;
 
     background:
-        rgba(82, 113, 255, 0.16);
+        rgba(255, 255, 255, .04);
 
-    color: #9cb0ff;
+    color: white;
+
+    cursor: pointer;
 }
 
-
-/* ========================================
-   REVIEW INDIVIDUAL
-======================================== */
+.filtros-reviews
+button.ativo {
+    background: #5271ff;
+}
 
 .review-item {
     padding:
-        16px 0;
+        14px 0;
 
     border-bottom:
-        1px solid rgba(255, 255, 255, 0.07);
+        1px solid
+        rgba(255, 255, 255, .08);
 }
 
 .review-topo {
     display: flex;
-
     justify-content: space-between;
-
-    gap: 10px;
-}
-
-.review-estrelas {
-    color: #ffc83d;
-
-    font-size: 16px;
-
-    letter-spacing: 1px;
 }
 
 .review-data {
-    color: #68778b;
+    color:
+        rgba(255, 255, 255, .4);
 
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .review-comentario {
-    margin-top: 9px;
-
-    color: #d7dce5;
-
-    font-size: 13px;
-
-    line-height: 1.55;
-
-    white-space: pre-wrap;
+    margin-top: 7px;
 }
 
 .review-tags {
     display: flex;
-
     flex-wrap: wrap;
 
     gap: 6px;
 
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .review-tag {
-    padding:
-        5px 8px;
+    padding: 5px 8px;
 
-    border-radius: 7px;
+    border-radius: 999px;
 
-    background: #1a293c;
+    background:
+        rgba(82, 113, 255, .12);
 
-    color: #94a3b8;
+    color: #a8b7ff;
 
     font-size: 10px;
 }
 
+.carregando,
 .sem-reviews {
-    padding:
-        35px 15px;
+    padding: 15px;
+
+    color:
+        rgba(255, 255, 255, .48);
+
+    font-size: 12px;
 
     text-align: center;
-
-    color: #8390a2;
 }
 
-.sem-reviews strong {
-    display: block;
 
-    margin-bottom: 7px;
+/* ========================================
+   OCULTO
+======================================== */
 
-    color: white;
+.oculto {
+    display: none !important;
 }
 
 
@@ -918,99 +1721,67 @@ textarea {
    MOBILE
 ======================================== */
 
-@media (max-width: 600px) {
+@media
+(max-width: 700px) {
 
-    .logo {
-        top: 12px;
-        left: 12px;
-
-        padding:
-            9px 11px;
-
-        font-size: 13px;
+    .topo {
+        top: 11px;
+        left: 11px;
+        right: 11px;
     }
 
-    .logo-icone {
-        width: 27px;
-        height: 27px;
+    .marca {
+        font-size: 17px;
     }
 
-    .radius-info {
-        top: 12px;
-        right: 12px;
-
-        padding:
-            9px 10px;
-
-        font-size: 10px;
+    .botao-menu {
+        width: 44px;
+        height: 44px;
     }
 
-    .location-button {
-        right: 14px;
-        bottom: 18px;
+    .menu-lateral {
+        width: 90vw;
     }
 
-    .painel-ponto {
+    .painel-lateral {
         top: auto;
         bottom: 0;
+        left: 0;
 
         width: 100%;
-        max-width: none;
+        height: auto;
+        max-height: 76vh;
 
-        height: 72vh;
+        padding: 20px;
+
+        border-left: none;
 
         border-radius:
             24px 24px 0 0;
-
-        transform:
-            translateY(105%);
     }
 
-    .painel-ponto.aberto {
-        transform:
-            translateY(0);
-    }
-
-    .painel-conteudo {
-        padding:
-            58px 17px 28px;
-    }
-
-    .painel-ponto h2 {
-        font-size: 20px;
-    }
-
-    .modal {
-        align-items: flex-end;
-
-        padding: 0;
-    }
-
-    .modal-caixa {
-        max-height: 92vh;
-
-        border-radius:
-            22px 22px 0 0;
-
-        padding:
-            20px 17px 25px;
-    }
-
-    .reviews-resumo {
-        grid-template-columns:
-            115px 1fr;
-
-        gap: 12px;
-
-        padding: 14px;
-    }
-
-    .reviews-nota-grande strong {
-        font-size: 33px;
+    .botoes-local-lugar,
+    .rota-acoes {
+        flex-direction: column;
     }
 
     .acoes-linha {
-        grid-template-columns: 1fr;
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .campos-duplos {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .reclamacao-card-topo {
+        flex-direction: column;
+    }
+
+    .reclamacao-acoes {
+        grid-template-columns:
+            1fr;
     }
 
 }
