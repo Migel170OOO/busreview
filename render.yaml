@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: busreview
+    runtime: node
+    region: ohio
+    plan: free
+    buildCommand: cd backend && npm ci
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: JWT_SECRET
+        generateValue: true
